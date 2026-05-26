@@ -1,0 +1,16 @@
+{
+  "skill_id": "thalovant-skill-interaction-modes",
+  "name": "Interaction Modes",
+  "description": "Temporary client-scoped modes such as party mode for Thalovant hubs.",
+  "tags": [
+    "mode",
+    "party",
+    "session"
+  ],
+  "examples": [
+    "Turn on party mode.",
+    "Back to normal.",
+    "What mode are we in?"
+  ],
+  "source": "https://github.com/thalovant/thalovant-skill-interaction-modes"
+}

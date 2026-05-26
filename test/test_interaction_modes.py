@@ -1,0 +1,77 @@
+from ovos_bus_client.message import Message
+
+from thalovant_skill_interaction_modes import (
+    InteractionModesSkill,
+    clear_interaction_mode,
+    get_interaction_mode,
+    is_interaction_mode,
+    reset_interaction_modes,
+    set_interaction_mode,
+)
+
+
+def setup_function():
+    reset_interaction_modes()
+
+
+def message(site_id: str = "kitchen"):
+    return Message(
+        "test",
+        {},
+        {"session": {"site_id": site_id, "session_id": f"{site_id}-session"}},
+    )
+
+
+def test_mode_is_scoped_per_site_id():
+    kitchen = message("kitchen")
+    office = message("office")
+
+    assert set_interaction_mode(kitchen, "party")
+    assert get_interaction_mode(kitchen) == "party"
+    assert is_interaction_mode(kitchen, "party")
+    assert get_interaction_mode(office) is None
+
+    assert clear_interaction_mode(kitchen, "party")
+    assert get_interaction_mode(kitchen) is None
+
+
+def test_mode_expires(monkeypatch):
+    now = 1000.0
+    monkeypatch.setattr("thalovant_skill_interaction_modes.time.time", lambda: now)
+    client = message("short")
+
+    assert set_interaction_mode(client, "party", ttl_seconds=1)
+    assert get_interaction_mode(client) == "party"
+
+    now = 1002.0
+    assert get_interaction_mode(client) is None
+
+
+class HarnessSkill(InteractionModesSkill):
+    def __del__(self):
+        pass
+
+    @property
+    def lang(self):
+        return "en-US"
+
+    @property
+    def settings(self):
+        return {"mode_ttl_seconds": 60}
+
+
+def test_skill_handlers_speak_localized_status(monkeypatch):
+    spoken = []
+    skill = HarnessSkill.__new__(HarnessSkill)
+    skill.speak = spoken.append
+
+    skill.handle_party_mode_enable(message("living-room"))
+    assert get_interaction_mode(message("living-room")) == "party"
+    assert "Party mode" in spoken[-1]
+
+    skill.handle_interaction_mode_status(message("living-room"))
+    assert "Party mode" in spoken[-1]
+
+    skill.handle_party_mode_disable(message("living-room"))
+    assert get_interaction_mode(message("living-room")) is None
+    assert spoken[-1]

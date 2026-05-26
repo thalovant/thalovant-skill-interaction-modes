@@ -1,0 +1,3 @@
+recursive-include thalovant_skill_interaction_modes/locale *
+include skill.json
+include README.md
