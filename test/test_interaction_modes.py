@@ -22,6 +22,14 @@ def message(site_id: str = "kitchen"):
     )
 
 
+def utterance_message(utterance: str, site_id: str = "kitchen", lang: str = "en-US"):
+    return Message(
+        "recognizer_loop:utterance",
+        {"utterance": utterance, "utterances": [utterance], "lang": lang},
+        {"lang": lang, "session": {"site_id": site_id, "session_id": f"{site_id}-session"}},
+    )
+
+
 def test_mode_is_scoped_per_site_id():
     kitchen = message("kitchen")
     office = message("office")
@@ -75,3 +83,19 @@ def test_skill_handlers_speak_localized_status(monkeypatch):
     skill.handle_party_mode_disable(message("living-room"))
     assert get_interaction_mode(message("living-room")) is None
     assert spoken[-1]
+
+
+def test_status_fallback_claims_trailing_context_and_french_status():
+    spoken = []
+    skill = HarnessSkill.__new__(HarnessSkill)
+    skill.speak = spoken.append
+
+    english = utterance_message("what mode are we in Montreal", "living-room", "en-US")
+    assert skill.can_answer(english)
+    assert skill._fallback_answer(english) is True
+    assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
+
+    french = utterance_message("quel mode est actif", "living-room", "fr-FR")
+    assert skill.can_answer(french)
+    assert skill._fallback_answer(french) is True
+    assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
