@@ -99,3 +99,13 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     assert skill.can_answer(french)
     assert skill._fallback_answer(french) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
+
+    spoken.clear()
+    live_shape = Message(
+        "ovos.skills.fallback.thalovant-skill-interaction-modes.thalovant.request",
+        {"utterance": "quel mode est actif", "lang": "en-US"},
+        {"session": {"site_id": "living-room", "session_id": "living-room-session"}},
+    )
+    assert skill.can_answer(live_shape)
+    assert skill._fallback_answer(live_shape) is True
+    assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}

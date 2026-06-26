@@ -43,6 +43,21 @@ def _resource_lang(lang: str | None) -> str:
     return "en-US"
 
 
+@lru_cache(maxsize=1)
+def _available_langs() -> tuple[str, ...]:
+    return tuple(sorted(path.name for path in LOCALE_DIR.iterdir() if path.is_dir()))
+
+
+def _candidate_langs(lang: str | None) -> tuple[str, ...]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for candidate in (_resource_lang(lang), *_available_langs(), "en-US"):
+        if candidate not in seen:
+            seen.add(candidate)
+            ordered.append(candidate)
+    return tuple(ordered)
+
+
 def _fold(text: str) -> str:
     normalized = unicodedata.normalize("NFKD", text.casefold())
     without_marks = "".join(char for char in normalized if not unicodedata.combining(char))
@@ -119,13 +134,19 @@ def _matches_intent_phrase(utterance: str, lang: str, filename: str) -> bool:
 
 
 def _classify_utterance(utterance: str, lang: str) -> str:
-    if _matches_intent_phrase(utterance, lang, "party.mode.enable.intent"):
-        return "enable"
-    if _matches_intent_phrase(utterance, lang, "party.mode.disable.intent"):
-        return "disable"
-    if _matches_intent_phrase(utterance, lang, "interaction.mode.status.intent"):
-        return "status"
-    return ""
+    return _classify_utterance_match(utterance, lang)[0]
+
+
+def _classify_utterance_match(utterance: str, lang: str) -> tuple[str, str]:
+    primary_lang = _resource_lang(lang)
+    for candidate_lang in _candidate_langs(primary_lang):
+        if _matches_intent_phrase(utterance, candidate_lang, "party.mode.enable.intent"):
+            return "enable", candidate_lang
+        if _matches_intent_phrase(utterance, candidate_lang, "party.mode.disable.intent"):
+            return "disable", candidate_lang
+        if _matches_intent_phrase(utterance, candidate_lang, "interaction.mode.status.intent"):
+            return "status", candidate_lang
+    return "", primary_lang
 
 
 def _scope_from_context(context: dict[str, Any] | None) -> str | None:
@@ -239,15 +260,14 @@ class InteractionModesSkill(FallbackSkill):
 
     def can_answer(self, message) -> bool:
         lang = _message_lang(message, self.lang)
-        utterances = (getattr(message, "data", {}) or {}).get("utterances") or []
-        return any(_classify_utterance(str(utterance), lang) for utterance in utterances)
+        return bool(_classify_utterance(_utterance(message), lang))
 
     def _fallback_answer(self, message) -> bool:
         lang = _message_lang(message, self.lang)
-        action = _classify_utterance(_utterance(message), lang)
+        action, matched_lang = _classify_utterance_match(_utterance(message), lang)
         if not action:
             return False
-        self._answer_action(message, action, lang)
+        self._answer_action(message, action, matched_lang)
         return True
 
     def _answer_action(self, message, action: str, lang: str):
