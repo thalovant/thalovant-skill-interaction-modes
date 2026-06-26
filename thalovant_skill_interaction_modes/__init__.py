@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover - compatibility with older OVOS stacks.
 
 LOCALE_DIR = Path(__file__).parent / "locale"
 DEFAULT_MODE_TTL_SECONDS = 30 * 60
-FALLBACK_PRIORITY = 87
+FALLBACK_PRIORITY = 91
 PARTY_MODE = "party"
 SUPPORTED_MODES = {PARTY_MODE}
 
@@ -109,9 +109,16 @@ def _message_lang(message: Any, fallback: str) -> str:
     return _resource_lang(data.get("lang") or context.get("lang") or session.get("lang") or fallback)
 
 
+def _skill_lang(skill: Any) -> str:
+    try:
+        return skill.lang
+    except Exception:
+        return "en-US"
+
+
 def _utterance(message: Any) -> str:
     data = getattr(message, "data", {}) or {}
-    utterance = data.get("utterance")
+    utterance = data.get("utterance") or data.get("phrase") or data.get("text") or data.get("query")
     if isinstance(utterance, str) and utterance.strip():
         return utterance.strip()
     utterances = data.get("utterances")
@@ -259,11 +266,11 @@ class InteractionModesSkill(FallbackSkill):
         return template.format(**(data or {})).replace("\\n", "\n")
 
     def can_answer(self, message) -> bool:
-        lang = _message_lang(message, self.lang)
+        lang = _message_lang(message, _skill_lang(self))
         return bool(_classify_utterance(_utterance(message), lang))
 
     def _fallback_answer(self, message) -> bool:
-        lang = _message_lang(message, self.lang)
+        lang = _message_lang(message, _skill_lang(self))
         action, matched_lang = _classify_utterance_match(_utterance(message), lang)
         if not action:
             return False
@@ -292,17 +299,17 @@ class InteractionModesSkill(FallbackSkill):
 
     @intent_handler("party.mode.enable.intent")
     def handle_party_mode_enable(self, message):
-        lang = _message_lang(message, self.lang)
+        lang = _message_lang(message, _skill_lang(self))
         self._answer_action(message, "enable", lang)
 
     @intent_handler("party.mode.disable.intent")
     def handle_party_mode_disable(self, message):
-        lang = _message_lang(message, self.lang)
+        lang = _message_lang(message, _skill_lang(self))
         self._answer_action(message, "disable", lang)
 
     @intent_handler("interaction.mode.status.intent")
     def handle_interaction_mode_status(self, message):
-        lang = _message_lang(message, self.lang)
+        lang = _message_lang(message, _skill_lang(self))
         self._answer_action(message, "status", lang)
 
     @skill_api_method

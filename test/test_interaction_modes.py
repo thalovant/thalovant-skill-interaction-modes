@@ -1,6 +1,7 @@
 from ovos_bus_client.message import Message
 
 from thalovant_skill_interaction_modes import (
+    FALLBACK_PRIORITY,
     InteractionModesSkill,
     clear_interaction_mode,
     get_interaction_mode,
@@ -109,3 +110,7 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     assert skill.can_answer(live_shape)
     assert skill._fallback_answer(live_shape) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
+
+
+def test_fallback_priority_runs_in_low_pipeline():
+    assert FALLBACK_PRIORITY > 90
