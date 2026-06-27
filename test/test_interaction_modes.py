@@ -96,6 +96,12 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     assert skill._fallback_answer(english) is True
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
+    spoken.clear()
+    natural_english = utterance_message("what interaction mode is on", "living-room", "en-US")
+    assert skill.can_answer(natural_english)
+    assert skill._fallback_answer(natural_english) is True
+    assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
+
     french = utterance_message("quel mode est actif", "living-room", "fr-FR")
     assert skill.can_answer(french)
     assert skill._fallback_answer(french) is True
