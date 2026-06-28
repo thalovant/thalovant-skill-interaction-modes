@@ -297,6 +297,40 @@ class InteractionModesSkill(FallbackSkill):
             return
         self.speak(self._dialog("interaction.mode.normal", lang))
 
+    def _preview_action_reply(
+        self,
+        utterance: str,
+        lang: str,
+        context: dict[str, Any] | None,
+        *,
+        commit: bool,
+    ) -> str:
+        action, matched_lang = _classify_utterance_match(utterance, lang)
+
+        class _Message:
+            pass
+
+        message = _Message()
+        message.context = context or {}
+        if action == "enable":
+            if commit and not set_interaction_mode(
+                message,
+                PARTY_MODE,
+                ttl_seconds=self.mode_ttl_seconds,
+            ):
+                return self._dialog("interaction.mode.unavailable", matched_lang)
+            return self._dialog("party.mode.enabled", matched_lang)
+        if action == "disable":
+            if commit:
+                clear_interaction_mode(message, PARTY_MODE)
+            return self._dialog("party.mode.disabled", matched_lang)
+        if action == "status":
+            mode = get_interaction_mode(message)
+            if mode == PARTY_MODE:
+                return self._dialog("party.mode.status", matched_lang)
+            return self._dialog("interaction.mode.normal", matched_lang)
+        return self._dialog("interaction.mode.normal", matched_lang)
+
     @intent_handler("party.mode.enable.intent")
     def handle_party_mode_enable(self, message):
         lang = _message_lang(message, _skill_lang(self))
@@ -320,6 +354,21 @@ class InteractionModesSkill(FallbackSkill):
         message = _Message()
         message.context = context or {}
         return get_interaction_mode(message)
+
+    @skill_api_method
+    def preview_reply(
+        self,
+        utterance: str = "",
+        lang: str | None = None,
+        context: dict[str, Any] | None = None,
+        commit: bool = False,
+    ) -> str:
+        return self._preview_action_reply(
+            utterance or "",
+            _resource_lang(lang or _skill_lang(self)),
+            context,
+            commit=commit,
+        )
 
 
 def create_skill():

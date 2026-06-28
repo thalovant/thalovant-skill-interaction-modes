@@ -86,6 +86,34 @@ def test_skill_handlers_speak_localized_status(monkeypatch):
     assert spoken[-1]
 
 
+def test_preview_reply_can_mutate_and_read_mode():
+    skill = HarnessSkill.__new__(HarnessSkill)
+    context = {"session": {"site_id": "living-room", "session_id": "preview-request"}}
+
+    assert "Party mode" in skill.preview_reply(
+        "Enable party mode.",
+        "en-US",
+        context,
+        commit=True,
+    )
+    assert get_interaction_mode(message("living-room")) == "party"
+    assert "Party mode" in skill.preview_reply(
+        "What interaction mode is on?",
+        "en-US",
+        context,
+    )
+    assert skill.preview_reply("Disable party mode.", "en-US", context, commit=True)
+    assert get_interaction_mode(message("living-room")) is None
+
+
+def test_preview_reply_without_commit_does_not_mutate_mode():
+    skill = HarnessSkill.__new__(HarnessSkill)
+    context = {"session": {"site_id": "living-room", "session_id": "preview-request"}}
+
+    assert skill.preview_reply("Enable party mode.", "en-US", context, commit=False)
+    assert get_interaction_mode(message("living-room")) is None
+
+
 def test_status_fallback_claims_trailing_context_and_french_status():
     spoken = []
     skill = HarnessSkill.__new__(HarnessSkill)
