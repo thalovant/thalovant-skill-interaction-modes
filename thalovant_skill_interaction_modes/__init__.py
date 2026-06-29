@@ -322,7 +322,9 @@ class InteractionModesSkill(FallbackSkill):
             return self._dialog("party.mode.enabled", matched_lang)
         if action == "disable":
             if commit:
-                clear_interaction_mode(message, PARTY_MODE)
+                if clear_interaction_mode(message, PARTY_MODE):
+                    return self._dialog("party.mode.disabled", matched_lang)
+                return self._dialog("interaction.mode.normal", matched_lang)
             return self._dialog("party.mode.disabled", matched_lang)
         if action == "status":
             mode = get_interaction_mode(message)

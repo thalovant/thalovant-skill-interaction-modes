@@ -91,7 +91,7 @@ def test_preview_reply_can_mutate_and_read_mode():
     context = {"session": {"site_id": "living-room", "session_id": "preview-request"}}
 
     assert "Party mode" in skill.preview_reply(
-        "Enable party mode.",
+        "Switch to party mode.",
         "en-US",
         context,
         commit=True,
@@ -102,8 +102,21 @@ def test_preview_reply_can_mutate_and_read_mode():
         "en-US",
         context,
     )
-    assert skill.preview_reply("Disable party mode.", "en-US", context, commit=True)
+    assert skill.preview_reply("Switch to work mode.", "en-US", context, commit=True)
     assert get_interaction_mode(message("living-room")) is None
+    assert skill.preview_reply("Switch to work mode.", "en-US", context, commit=True) in {
+        "Normal mode is on.",
+        "This client is in normal mode.",
+    }
+
+
+def test_switch_mode_synonyms_are_classified():
+    skill = HarnessSkill.__new__(HarnessSkill)
+
+    assert skill.can_answer(utterance_message("switch to party mode", "living-room", "en-US"))
+    assert skill.can_answer(utterance_message("switch to work mode", "living-room", "en-US"))
+    assert skill.can_answer(utterance_message("passe en mode fete", "living-room", "fr-FR"))
+    assert skill.can_answer(utterance_message("passe en mode travail", "living-room", "fr-FR"))
 
 
 def test_preview_reply_without_commit_does_not_mutate_mode():
