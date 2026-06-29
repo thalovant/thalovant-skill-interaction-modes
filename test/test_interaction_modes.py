@@ -102,6 +102,11 @@ def test_preview_reply_can_mutate_and_read_mode():
         "en-US",
         context,
     )
+    assert "Party mode" in skill.preview_reply(
+        "What mode am I in?",
+        "en-US",
+        context,
+    )
     assert skill.preview_reply("Switch to work mode.", "en-US", context, commit=True)
     assert get_interaction_mode(message("living-room")) is None
     assert skill.preview_reply("Switch to work mode.", "en-US", context, commit=True) in {
@@ -138,6 +143,12 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
     spoken.clear()
+    singular_english = utterance_message("what mode am I in", "living-room", "en-US")
+    assert skill.can_answer(singular_english)
+    assert skill._fallback_answer(singular_english) is True
+    assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
+
+    spoken.clear()
     natural_english = utterance_message("what interaction mode is on", "living-room", "en-US")
     assert skill.can_answer(natural_english)
     assert skill._fallback_answer(natural_english) is True
@@ -146,6 +157,12 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     french = utterance_message("quel mode est actif", "living-room", "fr-FR")
     assert skill.can_answer(french)
     assert skill._fallback_answer(french) is True
+    assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
+
+    spoken.clear()
+    natural_french = utterance_message("dans quel mode suis je", "living-room", "fr-FR")
+    assert skill.can_answer(natural_french)
+    assert skill._fallback_answer(natural_french) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
 
     spoken.clear()
