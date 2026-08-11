@@ -174,7 +174,7 @@ def test_status_fallback_claims_trailing_context_and_french_status():
     spoken.clear()
     live_shape = Message(
         "ovos.skills.fallback.thalovant-skill-interaction-modes.thalovant.request",
-        {"utterance": "quel mode est actif", "lang": "en-US"},
+        {"utterance": "quel mode est actif", "lang": "fr-FR"},
         {"session": {"site_id": "living-room", "session_id": "living-room-session"}},
     )
     assert skill.can_answer(live_shape)

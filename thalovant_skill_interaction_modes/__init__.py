@@ -10,15 +10,10 @@ from pathlib import Path
 from typing import Any
 
 from ovos_utils import classproperty
+from ovos_utils.lang import standardize_lang_tag as standardize_lang
 from ovos_utils.process_utils import RuntimeRequirements
 from ovos_workshop.decorators import intent_handler, skill_api_method
 from ovos_workshop.skills.fallback import FallbackSkill
-
-try:
-    from ovos_spec_tools import standardize_lang
-except ImportError:  # pragma: no cover - compatibility with older OVOS stacks.
-    from ovos_utils.lang import standardize_lang_tag as standardize_lang
-
 
 LOCALE_DIR = Path(__file__).parent / "locale"
 DEFAULT_MODE_TTL_SECONDS = 30 * 60
@@ -36,10 +31,15 @@ class _ModeState:
 _CLIENT_MODES: dict[str, _ModeState] = {}
 
 
+@lru_cache(maxsize=128)
 def _resource_lang(lang: str | None) -> str:
     normalized = standardize_lang(lang or "en-US")
-    if normalized.lower().startswith("fr"):
-        return "fr-FR"
+    if (LOCALE_DIR / normalized).is_dir():
+        return normalized
+    primary = normalized.split("-", 1)[0].casefold()
+    for candidate in _available_langs():
+        if candidate.split("-", 1)[0].casefold() == primary:
+            return candidate
     return "en-US"
 
 
@@ -49,13 +49,8 @@ def _available_langs() -> tuple[str, ...]:
 
 
 def _candidate_langs(lang: str | None) -> tuple[str, ...]:
-    seen: set[str] = set()
-    ordered: list[str] = []
-    for candidate in (_resource_lang(lang), *_available_langs(), "en-US"):
-        if candidate not in seen:
-            seen.add(candidate)
-            ordered.append(candidate)
-    return tuple(ordered)
+    resource_lang = _resource_lang(lang)
+    return (resource_lang,) if resource_lang == "en-US" else (resource_lang, "en-US")
 
 
 def _fold(text: str) -> str:
@@ -110,10 +105,7 @@ def _message_lang(message: Any, fallback: str) -> str:
 
 
 def _skill_lang(skill: Any) -> str:
-    try:
-        return skill.lang
-    except Exception:
-        return "en-US"
+    return skill.lang or "en-US"
 
 
 def _utterance(message: Any) -> str:
