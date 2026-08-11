@@ -30,5 +30,6 @@ Available helpers:
 
 ## Languages
 
-- `en-US`
-- `fr-FR`
+Every locale listed in
+`thalovant_skill_interaction_modes/locale/supported.json` is packaged with a
+complete intent, vocabulary, dialog, and metadata contract.
