@@ -1,2 +1,3 @@
 ovos-workshop>=8.0.0
 ovos-utils>=0.8.5
+thalovant-skillkit>=0.8.2
