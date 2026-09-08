@@ -139,36 +139,36 @@ def test_status_fallback_claims_trailing_context_and_french_status():
 
     english = utterance_message("what mode are we in Montreal", "living-room", "en-US")
     assert skill.can_answer(english)
-    assert skill._fallback_answer(english) is True
+    assert skill.handle_fallback(english) is True
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
     spoken.clear()
     singular_english = utterance_message("what mode am I in", "living-room", "en-US")
     assert skill.can_answer(singular_english)
-    assert skill._fallback_answer(singular_english) is True
+    assert skill.handle_fallback(singular_english) is True
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
     spoken.clear()
     natural_english = utterance_message("what interaction mode is on", "living-room", "en-US")
     assert skill.can_answer(natural_english)
-    assert skill._fallback_answer(natural_english) is True
+    assert skill.handle_fallback(natural_english) is True
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
     spoken.clear()
     active_english = utterance_message("which mode is active", "living-room", "en-US")
     assert skill.can_answer(active_english)
-    assert skill._fallback_answer(active_english) is True
+    assert skill.handle_fallback(active_english) is True
     assert spoken[-1] in {"Normal mode is on.", "This client is in normal mode."}
 
     french = utterance_message("quel mode est actif", "living-room", "fr-FR")
     assert skill.can_answer(french)
-    assert skill._fallback_answer(french) is True
+    assert skill.handle_fallback(french) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
 
     spoken.clear()
     natural_french = utterance_message("dans quel mode suis je", "living-room", "fr-FR")
     assert skill.can_answer(natural_french)
-    assert skill._fallback_answer(natural_french) is True
+    assert skill.handle_fallback(natural_french) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
 
     spoken.clear()
@@ -178,7 +178,7 @@ def test_status_fallback_claims_trailing_context_and_french_status():
         {"session": {"site_id": "living-room", "session_id": "living-room-session"}},
     )
     assert skill.can_answer(live_shape)
-    assert skill._fallback_answer(live_shape) is True
+    assert skill.handle_fallback(live_shape) is True
     assert spoken[-1] in {"Le mode normal est actif.", "Ce client est en mode normal."}
 
 

@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-import random
-import re
 import time
-import unicodedata
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from ovos_utils import classproperty
-from ovos_utils.lang import standardize_lang_tag as standardize_lang
-from ovos_utils.process_utils import RuntimeRequirements
 from ovos_workshop.decorators import intent_handler, skill_api_method
-from ovos_workshop.skills.fallback import FallbackSkill
+from thalovant_skillkit import SkillResources, context_of, fold_words
+from thalovant_skillkit.skill import ThalovantFallbackSkill
 
 LOCALE_DIR = Path(__file__).parent / "locale"
+RESOURCES = SkillResources(LOCALE_DIR)
 DEFAULT_MODE_TTL_SECONDS = 30 * 60
 FALLBACK_PRIORITY = 91
 PARTY_MODE = "party"
@@ -31,102 +26,24 @@ class _ModeState:
 _CLIENT_MODES: dict[str, _ModeState] = {}
 
 
-@lru_cache(maxsize=128)
-def _resource_lang(lang: str | None) -> str:
-    normalized = standardize_lang(lang or "en-US")
-    if (LOCALE_DIR / normalized).is_dir():
-        return normalized
-    primary = normalized.split("-", 1)[0].casefold()
-    for candidate in _available_langs():
-        if candidate.split("-", 1)[0].casefold() == primary:
-            return candidate
-    return "en-US"
-
-
-@lru_cache(maxsize=1)
-def _available_langs() -> tuple[str, ...]:
-    return tuple(sorted(path.name for path in LOCALE_DIR.iterdir() if path.is_dir()))
-
-
-def _candidate_langs(lang: str | None) -> tuple[str, ...]:
-    resource_lang = _resource_lang(lang)
-    return (resource_lang,) if resource_lang == "en-US" else (resource_lang, "en-US")
-
-
-def _fold(text: str) -> str:
-    normalized = unicodedata.normalize("NFKD", text.casefold())
-    without_marks = "".join(char for char in normalized if not unicodedata.combining(char))
-    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", without_marks)).strip()
-
-
-@lru_cache(maxsize=128)
-def _resource_file_lines(resource_lang: str, folder: str, filename: str) -> tuple[str, ...]:
-    path = LOCALE_DIR / resource_lang / folder / filename
-    if not path.exists():
-        return ()
-    return tuple(
-        line.strip()
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    )
-
-
-@lru_cache(maxsize=128)
-def _intent_file_lines(resource_lang: str, filename: str) -> tuple[str, ...]:
-    path = LOCALE_DIR / resource_lang / filename
-    if not path.exists():
-        return ()
-    return tuple(
-        line.strip()
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    )
-
-
 def _localized_intent_lines(lang: str, filename: str) -> tuple[str, ...]:
-    resource_lang = _resource_lang(lang)
+    """This language's phrasings of one intent file, then English's.
+
+    Both, rather than the first that exists: an English sentence is understood
+    on a French hub too, and always was.
+    """
     lines: list[str] = []
-    seen: set[str] = set()
-    for candidate in (resource_lang, "en-US"):
-        if candidate in seen:
-            continue
-        seen.add(candidate)
-        lines.extend(_intent_file_lines(candidate, filename))
+    for candidate in RESOURCES.candidate_langs(lang):
+        lines.extend(RESOURCES.lines(candidate, "", filename))
     return tuple(lines)
 
 
-def _message_lang(message: Any, fallback: str) -> str:
-    context = getattr(message, "context", {}) or {}
-    data = getattr(message, "data", {}) or {}
-    session = context.get("session") if isinstance(context, dict) else {}
-    if not isinstance(session, dict):
-        session = {}
-    return _resource_lang(data.get("lang") or context.get("lang") or session.get("lang") or fallback)
-
-
-def _skill_lang(skill: Any) -> str:
-    return skill.lang or "en-US"
-
-
-def _utterance(message: Any) -> str:
-    data = getattr(message, "data", {}) or {}
-    utterance = data.get("utterance") or data.get("phrase") or data.get("text") or data.get("query")
-    if isinstance(utterance, str) and utterance.strip():
-        return utterance.strip()
-    utterances = data.get("utterances")
-    if isinstance(utterances, list):
-        for candidate in utterances:
-            if isinstance(candidate, str) and candidate.strip():
-                return candidate.strip()
-    return ""
-
-
 def _matches_intent_phrase(utterance: str, lang: str, filename: str) -> bool:
-    text = _fold(utterance)
+    text = fold_words(utterance)
     if not text:
         return False
     for phrase in _localized_intent_lines(lang, filename):
-        needle = _fold(phrase)
+        needle = fold_words(phrase)
         if needle and (text == needle or text.startswith(needle + " ")):
             return True
     return False
@@ -137,8 +54,8 @@ def _classify_utterance(utterance: str, lang: str) -> str:
 
 
 def _classify_utterance_match(utterance: str, lang: str) -> tuple[str, str]:
-    primary_lang = _resource_lang(lang)
-    for candidate_lang in _candidate_langs(primary_lang):
+    primary_lang = RESOURCES.lang(lang)
+    for candidate_lang in RESOURCES.candidate_langs(primary_lang):
         if _matches_intent_phrase(utterance, candidate_lang, "party.mode.enable.intent"):
             return "enable", candidate_lang
         if _matches_intent_phrase(utterance, candidate_lang, "party.mode.disable.intent"):
@@ -167,7 +84,7 @@ def _scope_from_context(context: dict[str, Any] | None) -> str | None:
 
 
 def interaction_mode_scope(message: Any) -> str | None:
-    return _scope_from_context(getattr(message, "context", {}) or {})
+    return _scope_from_context(context_of(message))
 
 
 def _prune(now: float | None = None) -> None:
@@ -225,45 +142,28 @@ def reset_interaction_modes() -> None:
     _CLIENT_MODES.clear()
 
 
-class InteractionModesSkill(FallbackSkill):
+class InteractionModesSkill(ThalovantFallbackSkill):
     """Voice control for temporary client-scoped interaction modes."""
 
-    @classproperty
-    def runtime_requirements(self):
-        return RuntimeRequirements(
-            network_before_load=False,
-            internet_before_load=False,
-            gui_before_load=False,
-            requires_network=False,
-            requires_internet=False,
-            requires_gui=False,
-            no_network_fallback=True,
-            no_internet_fallback=True,
-            no_gui_fallback=True,
-        )
+    #: The module constant, so the rung is written once. The base registers the
+    #: fallback at it, and an operator may move it with a `fallback_priority`
+    #: setting.
+    FALLBACK_PRIORITY = FALLBACK_PRIORITY
 
     @property
     def mode_ttl_seconds(self) -> int:
-        return int(self.settings.get("mode_ttl_seconds") or DEFAULT_MODE_TTL_SECONDS)
-
-    def initialize(self):
-        self.register_fallback(self._fallback_answer, FALLBACK_PRIORITY)
-
-    def _dialog(self, name: str, lang: str, data: dict | None = None) -> str:
-        resource_lang = _resource_lang(lang)
-        lines = _resource_file_lines(resource_lang, "dialog", f"{name}.dialog")
-        if not lines and resource_lang != "en-US":
-            lines = _resource_file_lines("en-US", "dialog", f"{name}.dialog")
-        template = random.choice(lines) if lines else name
-        return template.format(**(data or {})).replace("\\n", "\n")
+        return int(self.setting("mode_ttl_seconds") or DEFAULT_MODE_TTL_SECONDS)
 
     def can_answer(self, message) -> bool:
-        lang = _message_lang(message, _skill_lang(self))
-        return bool(_classify_utterance(_utterance(message), lang))
+        return bool(_classify_utterance(self.utterance(message), self.lang_of(message)))
 
-    def _fallback_answer(self, message) -> bool:
-        lang = _message_lang(message, _skill_lang(self))
-        action, matched_lang = _classify_utterance_match(_utterance(message), lang)
+    def handle_fallback(self, message) -> bool:
+        """Kept rather than expressed as `reply`: the answer depends on which of
+        three sentences was said, and two of them change the mode as a side
+        effect. What is spoken is one line either way."""
+        action, matched_lang = _classify_utterance_match(
+            self.utterance(message), self.lang_of(message)
+        )
         if not action:
             return False
         self._answer_action(message, action, matched_lang)
@@ -272,22 +172,22 @@ class InteractionModesSkill(FallbackSkill):
     def _answer_action(self, message, action: str, lang: str):
         if action == "enable":
             if set_interaction_mode(message, PARTY_MODE, ttl_seconds=self.mode_ttl_seconds):
-                self.speak(self._dialog("party.mode.enabled", lang))
+                self.speak(self.dialog("party.mode.enabled", lang))
                 return
-            self.speak(self._dialog("interaction.mode.unavailable", lang))
+            self.speak(self.dialog("interaction.mode.unavailable", lang))
             return
         if action == "disable":
             if clear_interaction_mode(message, PARTY_MODE):
-                self.speak(self._dialog("party.mode.disabled", lang))
+                self.speak(self.dialog("party.mode.disabled", lang))
                 return
-            self.speak(self._dialog("interaction.mode.normal", lang))
+            self.speak(self.dialog("interaction.mode.normal", lang))
             return
 
         mode = get_interaction_mode(message)
         if mode == PARTY_MODE:
-            self.speak(self._dialog("party.mode.status", lang))
+            self.speak(self.dialog("party.mode.status", lang))
             return
-        self.speak(self._dialog("interaction.mode.normal", lang))
+        self.speak(self.dialog("interaction.mode.normal", lang))
 
     def _preview_action_reply(
         self,
@@ -310,35 +210,32 @@ class InteractionModesSkill(FallbackSkill):
                 PARTY_MODE,
                 ttl_seconds=self.mode_ttl_seconds,
             ):
-                return self._dialog("interaction.mode.unavailable", matched_lang)
-            return self._dialog("party.mode.enabled", matched_lang)
+                return self.dialog("interaction.mode.unavailable", matched_lang)
+            return self.dialog("party.mode.enabled", matched_lang)
         if action == "disable":
             if commit:
                 if clear_interaction_mode(message, PARTY_MODE):
-                    return self._dialog("party.mode.disabled", matched_lang)
-                return self._dialog("interaction.mode.normal", matched_lang)
-            return self._dialog("party.mode.disabled", matched_lang)
+                    return self.dialog("party.mode.disabled", matched_lang)
+                return self.dialog("interaction.mode.normal", matched_lang)
+            return self.dialog("party.mode.disabled", matched_lang)
         if action == "status":
             mode = get_interaction_mode(message)
             if mode == PARTY_MODE:
-                return self._dialog("party.mode.status", matched_lang)
-            return self._dialog("interaction.mode.normal", matched_lang)
-        return self._dialog("interaction.mode.normal", matched_lang)
+                return self.dialog("party.mode.status", matched_lang)
+            return self.dialog("interaction.mode.normal", matched_lang)
+        return self.dialog("interaction.mode.normal", matched_lang)
 
     @intent_handler("party.mode.enable.intent")
     def handle_party_mode_enable(self, message):
-        lang = _message_lang(message, _skill_lang(self))
-        self._answer_action(message, "enable", lang)
+        self._answer_action(message, "enable", self.lang_of(message))
 
     @intent_handler("party.mode.disable.intent")
     def handle_party_mode_disable(self, message):
-        lang = _message_lang(message, _skill_lang(self))
-        self._answer_action(message, "disable", lang)
+        self._answer_action(message, "disable", self.lang_of(message))
 
     @intent_handler("interaction.mode.status.intent")
     def handle_interaction_mode_status(self, message):
-        lang = _message_lang(message, _skill_lang(self))
-        self._answer_action(message, "status", lang)
+        self._answer_action(message, "status", self.lang_of(message))
 
     @skill_api_method
     def preview_mode(self, context: dict[str, Any] | None = None) -> str | None:
@@ -359,7 +256,7 @@ class InteractionModesSkill(FallbackSkill):
     ) -> str:
         return self._preview_action_reply(
             utterance or "",
-            _resource_lang(lang or _skill_lang(self)),
+            RESOURCES.lang(lang or self._own_lang()),
             context,
             commit=commit,
         )
