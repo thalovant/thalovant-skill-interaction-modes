@@ -3,8 +3,11 @@ name: Release
 # Pushing a vX.Y.Z tag (or dispatching with one) builds this skill's wheel at
 # that tag and publishes it to the private index thalovant/skill-index, then
 # registers the version with the marketplace. The logic lives in the reusable
-# workflow so every skill releases the same way; SKILL_INDEX_TOKEN and
-# THALOVANT_RELEASE_TOKEN are organisation secrets (skill-index/docs/SETUP.md).
+# workflow so every skill releases the same way. Secrets, inherited from this
+# repository or the organisation (skill-index/docs/SETUP.md):
+#   SKILL_INDEX_DEPLOY_KEY   write deploy key on skill-index (preferred), or
+#   SKILL_INDEX_TOKEN        PAT with Contents R/W on skill-index
+#   THALOVANT_RELEASE_TOKEN  API token with hubs:read + hubs:write
 
 on:
   push:
