@@ -1,0 +1,27 @@
+name: Release
+
+# Pushing a vX.Y.Z tag (or dispatching with one) builds this skill's wheel at
+# that tag and publishes it to the private index thalovant/skill-index, then
+# registers the version with the marketplace. The logic lives in the reusable
+# workflow so every skill releases the same way; SKILL_INDEX_TOKEN and
+# THALOVANT_RELEASE_TOKEN are organisation secrets (skill-index/docs/SETUP.md).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, e.g. v1.2.3"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: thalovant/skill-index/.github/workflows/release-skill.yml@main
+    with:
+      tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+    secrets: inherit
