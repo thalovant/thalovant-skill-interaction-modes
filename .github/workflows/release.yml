@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   release:
-    uses: thalovant/skill-index/.github/workflows/release-skill.yml@6a8a8bfab6a514b9d61acfe6d9a856d4f313476e # main
+    uses: thalovant/skill-index/.github/workflows/release-skill.yml@50c95aa456087374f27b33409d57ba20524886e0 # main
     with:
       tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     secrets: inherit
