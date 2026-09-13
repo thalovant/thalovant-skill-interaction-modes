@@ -46,7 +46,7 @@ def test_mode_is_scoped_per_site_id():
 
 def test_mode_expires(monkeypatch):
     now = 1000.0
-    monkeypatch.setattr("thalovant_skill_interaction_modes.time.time", lambda: now)
+    monkeypatch.setattr("thalovant_skill_interaction_modes.time.monotonic", lambda: now)
     client = message("short")
 
     assert set_interaction_mode(client, "party", ttl_seconds=1)
@@ -184,3 +184,32 @@ def test_status_fallback_claims_trailing_context_and_french_status():
 
 def test_fallback_priority_runs_in_low_pipeline():
     assert FALLBACK_PRIORITY > 90
+
+
+def test_wall_clock_jump_does_not_extend_mode(monkeypatch):
+    now = 1000.0
+    monkeypatch.setattr("thalovant_skill_interaction_modes.time.monotonic", lambda: now)
+    client = message("clock-test")
+    assert set_interaction_mode(client, "party", ttl_seconds=60)
+    monkeypatch.setattr("thalovant_skill_interaction_modes.time.time", lambda: -9999999)
+    now += 61
+    assert get_interaction_mode(client) is None
+
+
+def test_visitor_churn_evicts_oldest_scope_without_touching_recent_scope():
+    from thalovant_skill_interaction_modes import _CLIENT_MODES
+
+    for index in range(_CLIENT_MODES.max_entries + 1):
+        assert set_interaction_mode(message(f"visitor-{index}"), "party")
+    assert get_interaction_mode(message("visitor-0")) is None
+    assert get_interaction_mode(message(f"visitor-{_CLIENT_MODES.max_entries}")) == "party"
+    assert len(_CLIENT_MODES) == _CLIENT_MODES.max_entries
+
+
+def test_modes_require_explicit_mode_requests_after_translation_repairs():
+    skill = HarnessSkill.__new__(HarnessSkill)
+    assert not skill.can_answer(utterance_message("Jeg er ikke klar.", lang="da-DK"))
+    assert not skill.can_answer(utterance_message("-Ez, ez.", lang="eu-ES"))
+    assert skill.can_answer(utterance_message("Aktivér festtilstand", lang="da-DK"))
+    assert skill.can_answer(utterance_message("Desaktibatu festa modua", lang="eu-ES"))
+    assert skill.can_answer(utterance_message("เปิดโหมดปาร์ตี้", lang="th-TH"))

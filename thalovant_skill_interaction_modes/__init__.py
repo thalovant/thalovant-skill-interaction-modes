@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from ovos_workshop.decorators import intent_handler, skill_api_method
 from thalovant_skillkit import SkillResources, context_of, fold_words
 from thalovant_skillkit.skill import ThalovantFallbackSkill
+from thalovant_skillkit.sessions import SessionStateStore
 
 LOCALE_DIR = Path(__file__).parent / "locale"
 RESOURCES = SkillResources(LOCALE_DIR)
@@ -17,13 +17,12 @@ PARTY_MODE = "party"
 SUPPORTED_MODES = {PARTY_MODE}
 
 
-@dataclass
-class _ModeState:
-    mode: str
-    expires_at: float
-
-
-_CLIENT_MODES: dict[str, _ModeState] = {}
+# Shared by the public helper functions and the voice skill. A bounded store
+# prevents visitor churn from retaining unlimited state; elapsed time survives
+# wall-clock corrections without extending a child's party session.
+_CLIENT_MODES = SessionStateStore[str](
+    max_entries=1024, clock=lambda: time.monotonic()
+)
 
 
 def _localized_intent_lines(lang: str, filename: str) -> tuple[str, ...]:
@@ -87,13 +86,6 @@ def interaction_mode_scope(message: Any) -> str | None:
     return _scope_from_context(context_of(message))
 
 
-def _prune(now: float | None = None) -> None:
-    reference = time.time() if now is None else now
-    expired = [scope for scope, state in _CLIENT_MODES.items() if state.expires_at <= reference]
-    for scope in expired:
-        _CLIENT_MODES.pop(scope, None)
-
-
 def set_interaction_mode(
     message: Any,
     mode: str,
@@ -106,8 +98,7 @@ def set_interaction_mode(
     scope = interaction_mode_scope(message)
     if not scope:
         return False
-    _prune()
-    _CLIENT_MODES[scope] = _ModeState(mode=mode, expires_at=time.time() + max(1, ttl_seconds))
+    _CLIENT_MODES.set(scope, mode, ttl=max(1, ttl_seconds))
     return True
 
 
@@ -115,23 +106,19 @@ def get_interaction_mode(message: Any) -> str | None:
     scope = interaction_mode_scope(message)
     if not scope:
         return None
-    _prune()
-    state = _CLIENT_MODES.get(scope)
-    return state.mode if state else None
+    return _CLIENT_MODES.get(scope)
 
 
 def clear_interaction_mode(message: Any, mode: str | None = None) -> bool:
     scope = interaction_mode_scope(message)
     if not scope:
         return False
-    _prune()
-    state = _CLIENT_MODES.get(scope)
-    if state is None:
-        return False
-    if mode and state.mode != mode.strip().lower():
-        return False
-    _CLIENT_MODES.pop(scope, None)
-    return True
+    with _CLIENT_MODES.lock:
+        state = _CLIENT_MODES.get(scope)
+        if state is None or (mode and state != mode.strip().lower()):
+            return False
+        del _CLIENT_MODES[scope]
+        return True
 
 
 def is_interaction_mode(message: Any, mode: str) -> bool:
@@ -152,7 +139,10 @@ class InteractionModesSkill(ThalovantFallbackSkill):
 
     @property
     def mode_ttl_seconds(self) -> int:
-        return int(self.setting("mode_ttl_seconds") or DEFAULT_MODE_TTL_SECONDS)
+        try:
+            return max(1, int(self.setting("mode_ttl_seconds") or DEFAULT_MODE_TTL_SECONDS))
+        except (TypeError, ValueError, OverflowError):
+            return DEFAULT_MODE_TTL_SECONDS
 
     def can_answer(self, message) -> bool:
         return bool(_classify_utterance(self.utterance(message), self.lang_of(message)))
