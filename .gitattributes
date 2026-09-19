@@ -1,3 +1,20 @@
-**/locale/** linguist-generated=true
-**/locale/en-US/** linguist-generated=false
-**/locale/fr-FR/** linguist-generated=false
+# Regional resources are generated from locale/regional.json.
+thalovant_skill_interaction_modes/locale/en-CA/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/en-GB/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/en-AU/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/en-NZ/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/fr-CA/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/fr-BE/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/fr-CH/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/es-MX/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/es-AR/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/es-CO/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/es-US/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/de-AT/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/de-CH/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/pt-AO/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/pt-MZ/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/nl-BE/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/sv-FI/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/zh-TW/** linguist-generated=true
+thalovant_skill_interaction_modes/locale/zh-SG/** linguist-generated=true
