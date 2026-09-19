@@ -64,3 +64,16 @@ The package includes resources for the 46 locales declared in
 files that ship; native OVOS scenarios currently cover English and French.
 Native-speaker review and testing with the intended listeners are still needed
 to judge natural phrasing, pronunciation and understanding in every locale.
+
+## Regional translations
+
+This release ships 65 complete locale resource sets, including 19 newly completed
+regional variants of languages this skill already supports. Shared wording is inherited;
+regional differences live in `thalovant_skill_interaction_modes/locale/regional.json`. Existing
+regional translations are preserved. This is resource coverage, not certification by
+native speakers or a guarantee that every voice provider supports these accents.
+
+Edit the source language or the manifest, then run `thalovant-skillkit locales --write`
+and `thalovant-skillkit check --no-fleet`. Commit the generated files too. See the
+[regional authoring guide](https://docs.thalovant.com/developers/writing-a-skill/#generate-complete-regional-resources)
+for examples and the translation review checklist.
