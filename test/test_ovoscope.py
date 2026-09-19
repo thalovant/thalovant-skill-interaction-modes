@@ -29,7 +29,16 @@ def minicroft():
         yield croft
 
 
-@pytest.mark.parametrize("lang, utterance", [('en-US', 'enable party mode'), ('fr-FR', 'active le mode fête')])
+@pytest.mark.parametrize("lang, utterance", [
+    ('en-US', 'enable party mode'),
+    ('fr-FR', 'active le mode fête'),
+    ('en-CA', 'enable party mode'),
+    ('en-GB', 'enable party mode'),
+    ('en-AU', 'enable party mode'),
+    ('fr-CA', 'active le mode fête'),
+    ('fr-BE', 'active le mode fête'),
+    ('fr-CH', 'active le mode fête'),
+])
 def test_native_fallback_preserves_speaker_and_language(minicroft, lang, utterance):
     session = Session(f"scope-{lang}")
     session.lang = lang
