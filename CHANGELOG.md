@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.8 (2026-09-26)
+
+- Spell the French party-mode lines with their accents: "Le mode fête est
+  activé", "désactivé", "Mode fête activé". Without them espeak-ng, which
+  phonemises for the Thalovant voice, said "fəte" and "dəzaktiv". The
+  regional French locales are regenerated from fr-FR.
+- Requires thalovant-skillkit 0.22.0, which sends `utterance_ssml` and checks
+  speech markup. Nothing here needs markup: every reply is one short status
+  line, spoken through the kit's `speak`.
+
 ## 0.1.7 (2026-09-19)
 
 - Complete 19 common regional resource sets using shared translations and explicit
