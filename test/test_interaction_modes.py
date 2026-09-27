@@ -213,3 +213,18 @@ def test_modes_require_explicit_mode_requests_after_translation_repairs():
     assert skill.can_answer(utterance_message("Aktivér festtilstand", lang="da-DK"))
     assert skill.can_answer(utterance_message("Desaktibatu festa modua", lang="eu-ES"))
     assert skill.can_answer(utterance_message("เปิดโหมดปาร์ตี้", lang="th-TH"))
+
+
+def test_french_party_lines_are_spelled_to_be_read_aloud():
+    """espeak-ng reads "fete" as "fəte" and "desactive" as "dəzaktiv"."""
+    import re
+    from pathlib import Path
+
+    import thalovant_skill_interaction_modes
+
+    locale = Path(thalovant_skill_interaction_modes.__file__).parent / "locale"
+    unaccented = re.compile(r"\b(?:fete|desactive|active)\b", re.IGNORECASE)
+    for lang in ("fr-FR", "fr-CA", "fr-BE", "fr-CH"):
+        for name in ("party.mode.enabled", "party.mode.disabled", "party.mode.status"):
+            text = (locale / lang / "dialog" / f"{name}.dialog").read_text(encoding="utf-8")
+            assert not unaccented.search(text), f"{lang}/{name}: {text!r}"
