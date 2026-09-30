@@ -1,3 +1,5 @@
+Last Edit: Codex (GPT-6) - 2026-09-30 - Motive: Add missing license files and document verified repository languages.
+
 # Interaction Modes
 
 Set the mood with a temporary party mode for your own speaker.
@@ -24,3 +26,9 @@ Includes [65 language and regional resource sets](thalovant_skill_interaction_mo
 Created and maintained by [Thalovant contributors](https://github.com/thalovant/thalovant-skill-interaction-modes/graphs/contributors), using [OpenVoiceOS](https://github.com/OpenVoiceOS) and [Thalovant SkillKit](https://github.com/thalovant/thalovant-skillkit).
 
 Apache-2.0.
+
+## Repository metadata (2026-09-30)
+
+- License: [Apache-2.0](LICENSE).
+- Programming languages reported by GitHub: Python.
+- License basis: Existing [setup.py](setup.py) declaration.
