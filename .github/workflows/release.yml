@@ -156,7 +156,18 @@ jobs:
             if [ "$CHANNEL" = alpha ]; then flags+=(--prerelease); fi
             gh release create "$RELEASE_TAG" --verify-tag --generate-notes "${flags[@]}"
           fi
-          gh release upload "$RELEASE_TAG" dist/* --clobber
+          mkdir existing
+          for asset in dist/*; do
+            name=$(basename "$asset")
+            if gh release download "$RELEASE_TAG" --pattern "$name" --dir existing; then
+              cmp "$asset" "existing/$name" || {
+                echo "::error::Existing release asset differs: $name; publish a new version"
+                exit 1
+              }
+            else
+              gh release upload "$RELEASE_TAG" "$asset"
+            fi
+          done
 
   marketplace:
     needs: build
