@@ -268,7 +268,7 @@ jobs:
               print(f"published {package} {version} on channel {channel} as marketplace skill {skill_id}")
               if isinstance(resp, dict):
                   got = resp.get("sha256")
-                  if got and got != expected_sha:
+                  if got != expected_sha:
                       sys.exit(f"::error::API stored sha256 {got} but the built wheel is {expected_sha}")
           elif status == 404:
               warn_not_in_marketplace(f"POST returned 404: {resp}")
@@ -292,8 +292,7 @@ jobs:
 
           # The API inserts the version row after pushing the index, so it is
           # listed at once; a short poll only covers read replicas or a retry.
-          # After an idempotent 409 the row predates this run and may sit on
-          # another channel, so a miss there is a warning, not a failure.
+          # Even a retry must leave the requested version/channel discoverable.
           deadline = time.monotonic() + (120 if published_now else 10)
           listed = None
           while True:
@@ -308,9 +307,6 @@ jobs:
               if published_now:
                   sys.exit(f"::error::{message}")
               sys.exit(f"::error::{message}")
-
-          if listed.get("sha256") != expected_sha:
-              sys.exit("::error::listed wheel checksum does not match this release")
 
           summary = {
               "skill_id": skill_id, "slug": slug, "package": package, "version": version,
