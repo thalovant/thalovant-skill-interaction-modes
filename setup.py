@@ -43,21 +43,24 @@ with open(path.join(path.abspath(path.dirname(__file__)), "README.md"), encoding
 setup(
     name=PYPI_NAME,
     version=get_version(),
-    description="Temporary client-scoped interaction modes for Thalovant hubs.",
+    description="Temporary party mode for your own Thalovant speaker.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url=URL,
     author=SKILL_AUTHOR,
     license="Apache-2.0",
+    python_requires=">=3.10",
+    license_files=["LICENSE"],
+    project_urls={"Documentation": URL + "/blob/main/REFERENCE.md", "Issues": URL + "/issues"},
     packages=[SKILL_PKG],
     package_data={SKILL_PKG: find_resource_files()},
     include_package_data=True,
     install_requires=[
         line.strip()
-        for line in open("requirements.txt", encoding="utf-8")
+        for line in open(path.join(path.dirname(__file__), "requirements.txt"), encoding="utf-8")
         if line.strip() and not line.startswith("#")
     ],
-    extras_require={"test": ["pytest>=7.0.0", "thalovant-skillkit[testing]>=0.22.0"]},
+    extras_require={"test": ["pytest>=7.0.0", "thalovant-skillkit[testing]>=0.24.2"]},
     keywords="ovos skill plugin thalovant hivemind interaction modes",
     entry_points={"ovos.plugin.skill": PLUGIN_ENTRY_POINT},
 )

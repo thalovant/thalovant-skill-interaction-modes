@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.9 (2026-10-04)
+
+- Use SkillKit 0.24.2's cached command matching and explicit speaker/language replies.
+- Require complete commands for mode changes; preserve contextual status questions.
+- Reject anonymous framework identities instead of sharing a mode accidentally.
+- Repair contradictory enable/disable translations and political-party mistranslations;
+  regenerate common regional resources from the corrected sources.
+- Exercise every packaged command and all 65 locales through native OVOS turns.
+- Declare Python 3.10+ and license metadata; verify source archives and wheels.
+- Build once for independent PyPI, GitHub, and marketplace publication.
+
 ## 0.1.8 (2026-09-26)
 
 - Spell the French party-mode lines with their accents: "Le mode fête est

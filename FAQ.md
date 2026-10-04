@@ -1,7 +1,22 @@
-Last Edit: Codex (GPT-6) - 2026-09-30 - Motive: Add missing license files and document verified repository languages.
+# Common questions
 
-# FAQ
+## Will this play music or change every speaker?
 
-## Where are the license and language details?
+No. Party mode lets participating skills make their replies more playful.
+It applies to the speaker that asked. Other speakers keep their own modes.
 
-The root [LICENSE](LICENSE) contains the Apache-2.0 terms, based on Existing [setup.py](setup.py) declaration. GitHub reports Python from the repository source. These programming languages are distinct from supported spoken locales. See [QUICK_FACTS.md](QUICK_FACTS.md) for package metadata and [`InteractionModesSkill`](thalovant_skill_interaction_modes/__init__.py#L132), [`InteractionModesSkill.mode_ttl_seconds`](thalovant_skill_interaction_modes/__init__.py#L141) for source references.
+## How do I stop it?
+
+Say “Back to normal”. It also expires after 30 minutes by default, or when the
+assistant restarts. [Change the duration](REFERENCE.md#try-it) if needed.
+
+## Which languages work?
+
+The skill includes [65 language and regional resource sets](thalovant_skill_interaction_modes/locale/supported.json).
+SkillKit also handles compatible regional variants. Recognition and voice
+availability depend on your speech providers.
+
+## Who made it?
+
+[Thalovant contributors](README.md#credits), using OpenVoiceOS and SkillKit.
+The skill is Python software, licensed under [Apache-2.0](LICENSE).

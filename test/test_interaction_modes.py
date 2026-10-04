@@ -72,7 +72,7 @@ class HarnessSkill(InteractionModesSkill):
 def test_skill_handlers_speak_localized_status(monkeypatch):
     spoken = []
     skill = HarnessSkill.__new__(HarnessSkill)
-    skill.speak = spoken.append
+    skill.speak_to = lambda message, text, **kwargs: spoken.append(text)
 
     skill.handle_party_mode_enable(message("living-room"))
     assert get_interaction_mode(message("living-room")) == "party"
@@ -135,7 +135,7 @@ def test_preview_reply_without_commit_does_not_mutate_mode():
 def test_status_fallback_claims_trailing_context_and_french_status():
     spoken = []
     skill = HarnessSkill.__new__(HarnessSkill)
-    skill.speak = spoken.append
+    skill.speak_to = lambda message, text, **kwargs: spoken.append(text)
 
     english = utterance_message("what mode are we in Montreal", "living-room", "en-US")
     assert skill.can_answer(english)

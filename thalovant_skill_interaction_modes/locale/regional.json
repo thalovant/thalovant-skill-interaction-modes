@@ -32,57 +32,39 @@
     },
     "es-MX": {
       "source": "es-ES",
-      "overrides": {
-        "interaction.mode.status.intent": "¿En qué modo estamos?\n¿En qué modo estoy?\n¿Qué modo está encendido?\n¿Qué modo está activo?\nque modo está activo\n¿Qué modo de interacción está en\nen qué modo de interacción está\n¿En qué modo de interacción estamos?\nestá en modo de fiesta\n¿Estamos en modo de fiesta?\nmodo de corriente\nmodo de interacción actual\n"
-      }
+      "overrides": {}
     },
     "es-AR": {
       "source": "es-ES",
-      "overrides": {
-        "interaction.mode.status.intent": "¿En qué modo estamos?\n¿En qué modo estoy?\n¿Qué modo está encendido?\n¿Qué modo está activo?\nque modo está activo\n¿Qué modo de interacción está en\nen qué modo de interacción está\n¿En qué modo de interacción estamos?\nestá en modo de fiesta\n¿Estamos en modo de fiesta?\nmodo de corriente\nmodo de interacción actual\n"
-      }
+      "overrides": {}
     },
     "es-CO": {
       "source": "es-ES",
-      "overrides": {
-        "interaction.mode.status.intent": "¿En qué modo estamos?\n¿En qué modo estoy?\n¿Qué modo está encendido?\n¿Qué modo está activo?\nque modo está activo\n¿Qué modo de interacción está en\nen qué modo de interacción está\n¿En qué modo de interacción estamos?\nestá en modo de fiesta\n¿Estamos en modo de fiesta?\nmodo de corriente\nmodo de interacción actual\n"
-      }
+      "overrides": {}
     },
     "es-US": {
       "source": "es-ES",
-      "overrides": {
-        "interaction.mode.status.intent": "¿En qué modo estamos?\n¿En qué modo estoy?\n¿Qué modo está encendido?\n¿Qué modo está activo?\nque modo está activo\n¿Qué modo de interacción está en\nen qué modo de interacción está\n¿En qué modo de interacción estamos?\nestá en modo de fiesta\n¿Estamos en modo de fiesta?\nmodo de corriente\nmodo de interacción actual\n"
-      }
+      "overrides": {}
     },
     "de-AT": {
       "source": "de-DE",
-      "overrides": {
-        "interaction.mode.status.intent": "In welchem Modus sind wir?\nIn welchem Modus bin ich?\nWas ist der Modus?\nwelcher Modus aktiviert ist\nwelcher Modus aktiv ist\nauf welchem Interaktionsmodus\nwelcher Interaktionsmodus eingeschaltet ist\nIn welchem Interaktionsmodus sind wir?\nist der Party-Modus eingeschaltet\nSind wir im Party-Modus?\naktueller Modus\naktueller Wechselwirkungsmodus\n"
-      }
+      "overrides": {}
     },
     "de-CH": {
       "source": "de-DE",
-      "overrides": {
-        "interaction.mode.status.intent": "In welchem Modus sind wir?\nIn welchem Modus bin ich?\nWas ist der Modus?\nwelcher Modus aktiviert ist\nwelcher Modus aktiv ist\nauf welchem Interaktionsmodus\nwelcher Interaktionsmodus eingeschaltet ist\nIn welchem Interaktionsmodus sind wir?\nist der Party-Modus eingeschaltet\nSind wir im Party-Modus?\naktueller Modus\naktueller Wechselwirkungsmodus\n"
-      }
+      "overrides": {}
     },
     "pt-AO": {
       "source": "pt-PT",
-      "overrides": {
-        "interaction.mode.status.intent": "Em que modo estamos?\nEm que modo estou?\nQual é o modo ligado ?\nQual é o modo de atividade\nque modo está ativo\nQual é o modo de interação\nEm que modo de interação estamos?\nestá em modo de festa\nEstamos em modo de festa ?\nmodo corrente\nModo de interação corrente\n"
-      }
+      "overrides": {}
     },
     "pt-MZ": {
       "source": "pt-PT",
-      "overrides": {
-        "interaction.mode.status.intent": "Em que modo estamos?\nEm que modo estou?\nQual é o modo ligado ?\nQual é o modo de atividade\nque modo está ativo\nQual é o modo de interação\nEm que modo de interação estamos?\nestá em modo de festa\nEstamos em modo de festa ?\nmodo corrente\nModo de interação corrente\n"
-      }
+      "overrides": {}
     },
     "nl-BE": {
       "source": "nl-NL",
-      "overrides": {
-        "party.mode.disable.intent": "Stop-partijmodus\nde partijmodus uitschakelen\nterug naar normaal.\nnormale modus\nuitgangsparty-modus\noverschakelen naar werkmodus\nschakelen naar de normale modus\nverandering in werkmodus\nwerkwijze\n"
-      }
+      "overrides": {}
     },
     "sv-FI": {
       "source": "sv-SE",
@@ -93,24 +75,21 @@
     "zh-TW": {
       "source": "zh-CN",
       "overrides": {
-        "dialog/interaction.mode.normal.dialog": "正常模式啟動.\n這位客戶是正常的.\n",
-        "dialog/interaction.mode.unavailable.dialog": "我還不能改變這個客戶的模式.\n",
-        "dialog/party.mode.disabled.dialog": "派對模式已關閉.\n恢復正常.\n",
-        "dialog/party.mode.enabled.dialog": "對於這個客戶來說,聚會模式是開放的.\n聚會模式啟動.\n",
-        "dialog/party.mode.status.dialog": "聚會模式啟動.\n",
-        "interaction.mode.status.intent": "我们现在处于什么状态?\n我們現在處於什麼狀態?\n我现在处于什么状态?\n我現在處於什麼狀態?\n我现在处于哪个模式下?\n我現在處於哪個模式下?\n电源是什么模式\n電源是什麼模式\n哪种模式是活跃的\n哪種模式是活躍的\n交互模式是什么\n互動模式是什麼\n交互模式是哪个\n互動模式是哪個\n我们处于什么互动模式?\n我們處於什麼互動模式?\n是活动模式\n是活動模式\n我们在派对模式吗?\n我們在派對模式嗎?\n电流模式\n電流模式\n现行交互模式\n現行互動模式\n",
-        "party.mode.disable.intent": "停止派对模式\n停止派對模式\n关闭派对模式\n關閉派對模式\n禁用党员模式\n停用黨員模式\n恢复正常\n恢復正常\n正常模式\n出口派对模式\n出口派對模式\n转换为工作模式\n轉換為工作模式\n转到正常模式\n轉到正常模式\n工作模式\n",
-        "party.mode.enable.intent": "聚会模式\n聚會模式\n开始派对模式\n開始派對模式\n启动派对模式\n啟動派對模式\n启用党员模式\n啟用黨員模式\n让我们一起聚会吧\n讓我們一起聚會吧\n让这个聚会模式\n讓這個聚會模式\n切换到党节模式\n切換到黨節模式\n转换为党员模式\n轉換為黨員模式\n",
+        "dialog/interaction.mode.normal.dialog": "現在是正常模式。\n",
+        "dialog/interaction.mode.unavailable.dialog": "我還無法識別這台裝置，暫時不能變更模式。\n",
+        "dialog/party.mode.disabled.dialog": "派對模式已關閉。\n",
+        "dialog/party.mode.enabled.dialog": "派對模式已開啟。\n",
+        "dialog/party.mode.status.dialog": "派對模式已開啟。\n",
+        "interaction.mode.status.intent": "現在是什麼模式\n目前是什麼模式\n派對模式開著嗎\n我們在派對模式嗎\n",
+        "party.mode.disable.intent": "關閉派對模式\n停止派對模式\n退出派對模式\n恢復正常模式\n切換到工作模式\n",
+        "party.mode.enable.intent": "開啟派對模式\n打開派對模式\n啟動派對模式\n切換到派對模式\n派對模式\n",
         "skill.json": "{\n  \"name\": \"互動方式\",\n  \"description\": \"通過語音啟動或關閉臨時客戶端模式.\"\n}\n"
       }
     },
     "zh-SG": {
       "source": "zh-CN",
-      "overrides": {
-        "interaction.mode.status.intent": "我们现在处于什么状态?\n我现在处于什么状态?\n我现在处于哪个模式下?\n电源是什么模式\n哪种模式是活跃的\n交互模式是什么\n交互模式是哪个\n我们处于什么互动模式?\n是活动模式\n我们在派对模式吗?\n电流模式\n现行交互模式\n",
-        "party.mode.disable.intent": "停止派对模式\n关闭派对模式\n禁用党员模式\n恢复正常\n正常模式\n出口派对模式\n转换为工作模式\n转到正常模式\n工作模式\n"
-      }
+      "overrides": {}
     }
   },
-  "_chinese_provenance": "Written Mandarin: Traditional/Taiwan wording prepared with OpenCC 1.4.2 s2twp; technical keys and placeholders preserved. Not a Cantonese translation or native-speaker certification."
+  "_chinese_provenance": "Written Mandarin: Simplified and Traditional mode commands and replies maintained explicitly. Not a Cantonese translation or native-speaker certification."
 }
