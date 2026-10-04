@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import time
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from ovos_workshop.decorators import intent_handler, skill_api_method
-from thalovant_skillkit import SkillResources, context_of, fold_words
+from thalovant_skillkit import SkillResources, context_of, fold_words, standardize, utterances
 from thalovant_skillkit.skill import ThalovantFallbackSkill
 from thalovant_skillkit.sessions import SessionStateStore
 
@@ -25,27 +26,17 @@ _CLIENT_MODES = SessionStateStore[str](
 )
 
 
-def _localized_intent_lines(lang: str, filename: str) -> tuple[str, ...]:
-    """This language's phrasings of one intent file, then English's.
-
-    Both, rather than the first that exists: an English sentence is understood
-    on a French hub too, and always was.
-    """
-    lines: list[str] = []
-    for candidate in RESOURCES.candidate_langs(lang):
-        lines.extend(RESOURCES.lines(candidate, "", filename))
-    return tuple(lines)
-
-
-def _matches_intent_phrase(utterance: str, lang: str, filename: str) -> bool:
-    text = fold_words(utterance)
-    if not text:
-        return False
-    for phrase in _localized_intent_lines(lang, filename):
-        needle = fold_words(phrase)
-        if needle and (text == needle or text.startswith(needle + " ")):
-            return True
-    return False
+@lru_cache(maxsize=128)
+def _status_prefixes(lang: str) -> tuple[str, ...]:
+    """Keep the existing read-only status question with trailing context."""
+    return tuple(
+        fold_words(line)
+        for candidate in RESOURCES.matching_langs(lang)
+        for line in RESOURCES.lines(
+            candidate, "", "interaction.mode.status.intent", fallback=False
+        )
+        if fold_words(line)
+    )
 
 
 def _classify_utterance(utterance: str, lang: str) -> str:
@@ -54,13 +45,24 @@ def _classify_utterance(utterance: str, lang: str) -> str:
 
 def _classify_utterance_match(utterance: str, lang: str) -> tuple[str, str]:
     primary_lang = RESOURCES.lang(lang)
-    for candidate_lang in RESOURCES.candidate_langs(primary_lang):
-        if _matches_intent_phrase(utterance, candidate_lang, "party.mode.enable.intent"):
-            return "enable", candidate_lang
-        if _matches_intent_phrase(utterance, candidate_lang, "party.mode.disable.intent"):
-            return "disable", candidate_lang
-        if _matches_intent_phrase(utterance, candidate_lang, "interaction.mode.status.intent"):
-            return "status", candidate_lang
+    # SkillKit caches exact phrases across compatible regions. Try English
+    # separately so an English command on a French speaker gets an English reply.
+    text = fold_words(utterance)
+    for candidate in dict.fromkeys((primary_lang, RESOURCES.default_lang)):
+        reply_lang = (
+            standardize(lang)
+            if candidate == primary_lang and RESOURCES.matching_langs(lang)
+            else candidate
+        )
+        for action, intent in (
+            ("enable", "party.mode.enable"),
+            ("disable", "party.mode.disable"),
+            ("status", "interaction.mode.status"),
+        ):
+            if RESOURCES.matches_literal_intent(utterance, intent, candidate):
+                return action, reply_lang
+        if any(text.startswith(prefix + " ") for prefix in _status_prefixes(candidate)):
+            return "status", reply_lang
     return "", primary_lang
 
 
@@ -70,14 +72,14 @@ def _scope_from_context(context: dict[str, Any] | None) -> str | None:
     session = context.get("session")
     if isinstance(session, dict):
         site_id = session.get("site_id") or session.get("siteId")
-        if isinstance(site_id, str) and site_id.strip() and site_id.strip() != "unknown":
+        if isinstance(site_id, str) and site_id.strip() and site_id.strip().lower() not in {"unknown", "default"}:
             return site_id.strip()
         session_id = session.get("session_id") or session.get("sessionId")
-        if isinstance(session_id, str) and session_id.strip() and session_id.strip() != "default":
+        if isinstance(session_id, str) and session_id.strip() and session_id.strip().lower() not in {"unknown", "default"}:
             return session_id.strip()
     for key in ("site_id", "siteId", "client_id", "clientId", "source"):
         value = context.get(key)
-        if isinstance(value, str) and value.strip() and value.strip() != "unknown":
+        if isinstance(value, str) and value.strip() and value.strip().lower() not in {"unknown", "default", "skills", "audio"}:
             return value.strip()
     return None
 
@@ -144,16 +146,22 @@ class InteractionModesSkill(ThalovantFallbackSkill):
         except (TypeError, ValueError, OverflowError):
             return DEFAULT_MODE_TTL_SECONDS
 
+    def _match_message(self, message) -> tuple[str, str]:
+        # OVOS supplies normalized and original transcripts. Some normalizers
+        # strip Indic/Thai marks, so let SkillKit read every supplied phrasing.
+        lang = self.lang_of(message)
+        for text in utterances(message):
+            action, matched_lang = _classify_utterance_match(text, lang)
+            if action:
+                return action, matched_lang
+        return "", lang
+
     def can_answer(self, message) -> bool:
-        return bool(_classify_utterance(self.utterance(message), self.lang_of(message)))
+        return bool(self._match_message(message)[0])
 
     def handle_fallback(self, message) -> bool:
-        """Kept rather than expressed as `reply`: the answer depends on which of
-        three sentences was said, and two of them change the mode as a side
-        effect. What is spoken is one line either way."""
-        action, matched_lang = _classify_utterance_match(
-            self.utterance(message), self.lang_of(message)
-        )
+        """Apply one explicit mode request and reply to its originating speaker."""
+        action, matched_lang = self._match_message(message)
         if not action:
             return False
         self._answer_action(message, action, matched_lang)
@@ -162,22 +170,22 @@ class InteractionModesSkill(ThalovantFallbackSkill):
     def _answer_action(self, message, action: str, lang: str):
         if action == "enable":
             if set_interaction_mode(message, PARTY_MODE, ttl_seconds=self.mode_ttl_seconds):
-                self.speak(self.dialog("party.mode.enabled", lang))
+                self.speak_to(message, self.dialog("party.mode.enabled", lang), lang=lang)
                 return
-            self.speak(self.dialog("interaction.mode.unavailable", lang))
+            self.speak_to(message, self.dialog("interaction.mode.unavailable", lang), lang=lang)
             return
         if action == "disable":
             if clear_interaction_mode(message, PARTY_MODE):
-                self.speak(self.dialog("party.mode.disabled", lang))
+                self.speak_to(message, self.dialog("party.mode.disabled", lang), lang=lang)
                 return
-            self.speak(self.dialog("interaction.mode.normal", lang))
+            self.speak_to(message, self.dialog("interaction.mode.normal", lang), lang=lang)
             return
 
         mode = get_interaction_mode(message)
         if mode == PARTY_MODE:
-            self.speak(self.dialog("party.mode.status", lang))
+            self.speak_to(message, self.dialog("party.mode.status", lang), lang=lang)
             return
-        self.speak(self.dialog("interaction.mode.normal", lang))
+        self.speak_to(message, self.dialog("interaction.mode.normal", lang), lang=lang)
 
     def _preview_action_reply(
         self,

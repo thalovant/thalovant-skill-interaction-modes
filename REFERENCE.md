@@ -1,49 +1,79 @@
 # Interaction Modes
 
-Temporary session modes for Thalovant hubs.
+Give one speaker a temporary party mode. Participating skills can change their
+replies while it is active; this skill itself does not start music or change volume.
 
-This skill lets a client say things like "turn on party mode" or "back to normal" without changing hub configuration, OVOS core, or HiveMind core. The active mode is stored in process memory and scoped to the current HiveMind `site_id`, so one client can be in party mode while another client connected to the same hub remains normal.
+## Try it
 
-## Design
+Say “Turn on party mode”, then “What mode are we in?” The skill confirms party
+mode. Say “Back to normal” to end it. Another speaker keeps its own mode.
 
-- State is in memory and expires automatically.
-- The scope key comes from `message.context["session"]["site_id"]`.
-- Participating Thalovant skills opt in by importing the helper functions from this package.
-- Runtime restarts clear modes by design.
-- API and public web previews should pass mode explicitly instead of relying on hidden sticky state.
+The `mode_ttl_seconds` skill setting controls the duration. The default is 1,800
+seconds (30 minutes). Asking for the current mode does not extend that time.
+Restarting the assistant clears modes.
 
-## Helper API
+## Use the mode in another skill
+
+Use the same message that your SkillKit handler received:
 
 ```python
-from thalovant_skill_interaction_modes import get_interaction_mode, is_interaction_mode
+from thalovant_skill_interaction_modes import is_interaction_mode
 
+# Inside your skill's handler:
 if is_interaction_mode(message, "party"):
-    ...
+    self.speak_to(message, self.dialog("playful.answer", self.lang_of(message)))
+else:
+    self.speak_to(message, self.dialog("normal.answer", self.lang_of(message)))
 ```
 
-Available helpers:
+Add those two dialog files to your skill's languages. The helper only reads the
+mode; it does not extend its lifetime. Both skills must run in the same Python
+process to share state.
 
-- `set_interaction_mode(message, mode, ttl_seconds=1800)`
-- `get_interaction_mode(message)`
-- `clear_interaction_mode(message)`
-- `is_interaction_mode(message, mode)`
+The package also provides:
+
+- `set_interaction_mode(message, "party", ttl_seconds=1800)` — returns whether it could set the mode.
+- `get_interaction_mode(message)` — returns `"party"` or `None`.
+- `clear_interaction_mode(message, mode=None)` — returns whether it removed a mode.
+- `is_interaction_mode(message, "party")` — checks without changing anything.
+
+State uses SkillKit's synchronized `SessionStateStore`, capped at 1,024 scopes.
+The oldest written scope is evicted at capacity. Expiry follows elapsed time,
+so clock corrections do not prolong a mode. Identity comes from the session's
+site ID, then session ID, then a client/site/source identity in the message
+context. Missing identities and framework placeholders cannot enable a mode.
+
+`preview_reply(utterance, lang, context)` returns text without speaking or changing
+state. Pass `commit=True` explicitly to apply a mode change. `preview_mode(context)`
+reads the current mode.
 
 ## Languages
 
-Every locale listed in
-`thalovant_skill_interaction_modes/locale/supported.json` is packaged with a
-complete intent, vocabulary, dialog, and metadata contract.
+All 65 locales in [supported.json](thalovant_skill_interaction_modes/locale/supported.json)
+ship complete command, reply, and metadata resources. SkillKit resolves additional
+compatible regional variants; English is the default for unsupported languages.
+A known English command also works on a non-English speaker and receives an
+English reply. Other commands receive a reply in the requesting locale.
 
-## Session and reliability behavior
+Mode changes require a complete command, so “party mode is a song title” cannot
+switch modes. Status questions can include trailing context, such as
+“What mode are we in Montreal?”
 
-- Mode state uses SkillKit's synchronized `SessionStateStore`, capped at 1,024 scopes. A new scope evicts the oldest written scope when capacity is reached.
-- The default expiry is 30 minutes; the `mode_ttl_seconds` setting changes it. Expiry uses monotonic time, so wall-clock changes cannot prolong a mode. Reading a mode does not refresh its expiry.
-- The scope is the session's site ID, then session ID, then a client/site/source identity from the message context. Requests without a usable identity cannot enable a mode.
-- State is shared by this package's helper API and skill within one Python process. Separate runtime processes have separate mode state; restarting clears it.
+Shared regional wording comes from [regional.json](thalovant_skill_interaction_modes/locale/regional.json).
+Edit the source locale or a regional override, then regenerate and check:
 
-## Verification and contributing
+```bash
+thalovant-skillkit locales --write
+thalovant-skillkit check --no-fleet
+```
 
-Use Python 3.10 or newer and install the test extra so the OVOScope tests run:
+Traditional and Simplified Chinese resources use written Mandarin. Resource
+coverage and automated tests do not certify native-speaker fluency. Recognition
+and pronunciation depend on your speech providers.
+
+## Develop and verify
+
+Use Python 3.10 or newer and SkillKit 0.24.2 or newer:
 
 ```bash
 python -m venv .venv
@@ -54,26 +84,8 @@ python -m build
 thalovant-skillkit check-artifacts . --wheel dist/*.whl --sdist dist/*.tar.gz
 ```
 
-CI runs the complete test suite on Python 3.10, 3.12 and 3.14. Tests isolate
-OVOS configuration and settings from the developer's real assistant. Native
-OVOScope tests check the actual fallback pipeline and speech/session metadata;
-unit tests cover the skill's deterministic behavior and failure cases.
-
-The package includes resources for the 65 locales declared in
-`thalovant_skill_interaction_modes/locale/supported.json`. Resource and packaging checks verify the
-files that ship; native OVOS scenarios currently cover English and French.
-Native-speaker review and testing with the intended listeners are still needed
-to judge natural phrasing, pronunciation and understanding in every locale.
-
-## Regional translations
-
-This release ships 65 complete locale resource sets, including 19 newly completed
-regional variants of languages this skill already supports. Shared wording is inherited;
-regional differences live in `thalovant_skill_interaction_modes/locale/regional.json`. Existing
-regional translations are preserved. This is resource coverage, not certification by
-native speakers or a guarantee that every voice provider supports these accents.
-
-Edit the source language or the manifest, then run `thalovant-skillkit locales --write`
-and `thalovant-skillkit check --no-fleet`. Commit the generated files too. See the
-[regional authoring guide](https://docs.thalovant.com/developers/writing-a-skill/#generate-complete-regional-resources)
-for examples and the translation review checklist.
+Tests isolate assistant settings from your own configuration. Every packaged
+command is checked for the correct action. OVOScope runs enable, status, and
+disable turns for every declared locale, checking the reply text, language,
+originating session, and stored mode. Additional tests cover room isolation,
+expiry, read-only previews, malformed settings, and unrelated requests.

@@ -1,15 +1,15 @@
-Last Edit: Codex (GPT-6) - 2026-09-30 - Motive: Add missing license files and document verified repository languages.
-
 # Quick facts
-
-## Verified metadata (2026-09-30)
 
 | Field | Value |
 |---|---|
 | Package | `thalovant-skill-interaction-modes` |
-| Version | `0.1.8` |
-| Entry points | `opm.skill: thalovant-skill-interaction-modes.thalovant = thalovant_skill_interaction_modes:InteractionModesSkill` |
+| Python | 3.10 or newer |
+| SkillKit | 0.24.2 or newer |
+| Entry point | `ovos.plugin.skill: thalovant-skill-interaction-modes.thalovant` |
+| Skill class | `thalovant_skill_interaction_modes:InteractionModesSkill` |
+| Languages | 65 packaged locales, plus compatible regional fallback |
+| Default duration | 30 minutes |
 | License | [Apache-2.0](LICENSE) |
-| Programming languages | Python |
 
-Source references: [`InteractionModesSkill`](thalovant_skill_interaction_modes/__init__.py#L132), [`InteractionModesSkill.mode_ttl_seconds`](thalovant_skill_interaction_modes/__init__.py#L141).
+See [releases](https://github.com/thalovant/thalovant-skill-interaction-modes/releases)
+for versions and [the reference](REFERENCE.md) for settings and helper examples.
