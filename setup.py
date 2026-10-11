@@ -60,7 +60,7 @@ setup(
         for line in open(path.join(path.dirname(__file__), "requirements.txt"), encoding="utf-8")
         if line.strip() and not line.startswith("#")
     ],
-    extras_require={"test": ["pytest>=7.0.0", "thalovant-skillkit[testing]>=0.24.2"]},
+    extras_require={"test": ["pytest>=7.0.0", "thalovant-skillkit[testing]>=0.25.0"]},
     keywords="ovos skill plugin thalovant hivemind interaction modes",
     entry_points={"ovos.plugin.skill": PLUGIN_ENTRY_POINT},
 )
