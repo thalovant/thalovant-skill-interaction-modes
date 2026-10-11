@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.10 (2026-10-10)
+
+- Requires thalovant-skillkit 0.25.0. Earlier kits dropped the marks that
+  spell a letter when folding text: the Hindi vowel signs and virama, the Thai
+  tone marks and the Japanese voicing marks. This skill matches its own intent
+  lines with the kit's folding, and 31 hi-IN, 27 th-TH and 12 ja-JP of them
+  now keep those marks. A hub only takes the new kit when a skill it runs
+  requires it.
+
 ## 0.1.9 (2026-10-04)
 
 - Use SkillKit 0.24.2's cached command matching and explicit speaker/language replies.
