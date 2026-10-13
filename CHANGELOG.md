@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.11 (2026-10-12)
+
+- Mode commands route by intent in the 11 languages the hubs serve. German
+  wrote "Party-Modus", which padatious reads as one word that "Partymodus"
+  never matches; the French lines had no accents ("mode fete"), and padatious
+  keeps them, so "active le mode fête" went to the fallback. Both spellings
+  are lines now, with the everyday forms: "party mode on/off", "mets le mode
+  fête", "schalte den Partymodus ein", "is party mode active".
+- Rewrote the Italian, Catalan, Galician, Basque and Hindi lines, which were
+  machine translations ("modalità partito", "mode de partit", "Partidaren
+  modua" -- a political party; "प्रस्थान पार्टी मोड"). Every line stays a
+  literal sentence, so the fallback still matches each one.
+
 ## 0.1.10 (2026-10-10)
 
 - Requires thalovant-skillkit 0.25.0. Earlier kits dropped the marks that
