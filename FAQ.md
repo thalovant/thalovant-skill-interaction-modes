@@ -1,3 +1,5 @@
+Last Edit: Codex (exact runtime model identifier unavailable) - 2026-10-25 - Motive: Record the scoped filelock compatibility pin and verification.
+
 # Common questions
 
 ## Will this play music or change every speaker?
@@ -20,3 +22,7 @@ availability depend on your speech providers.
 
 [Thalovant contributors](README.md#credits), using OpenVoiceOS and SkillKit.
 The skill is Python software, licensed under [Apache-2.0](LICENSE).
+
+## Why is filelock pinned to 3.20.3?
+
+The pin keeps the skill's Python 3.10-compatible dependency route outside the eight reviewed advisory ranges without adding a newer-runtime-only dependency. Both requirements installs and built wheel metadata enforce it. It must be reassessed when advisories or runtime support change; it is not a permanent security guarantee. See [AUDIT.md](AUDIT.md) and `test_installed_metadata_pins_reviewed_filelock` in [the regression tests](test/test_dependency_security.py).
