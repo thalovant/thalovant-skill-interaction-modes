@@ -40,7 +40,7 @@ Verification (local): Python 3.10 suite 366 passed, 1 skipped; Python 3.14 suite
 
 ## 2026-11-03: filelock split follow-up
 
-Added `-r .github/ci/runtime-security-requirements.txt` to the uv installs in the test and release workflows, so they check the combo-lock archive hash, which uv does not check on an override. Corrected the [pyproject.toml](pyproject.toml) comment and [AUDIT.md](AUDIT.md) to match, capped the 3.10 override at `combo-lock>=0.3,<0.4`, and made the dependency guard tests compare the override list and the CI requirements file entry by entry. The new assertions were mutation-checked. Verification: Python 3.10 366 passed, 1 skipped; Python 3.14 367 passed.
+Added `-r .github/ci/runtime-security-requirements.txt` to the uv installs in the test and release workflows, so they check the combo-lock archive hash, which uv does not check on an override. The release step adds it only when the checked-out tag has the file, so older tags stay re-releasable. Corrected the [pyproject.toml](pyproject.toml) comment and [AUDIT.md](AUDIT.md) to match, capped the 3.10 override at `combo-lock>=0.3,<0.4`, and made the dependency guard tests compare the override list and the CI requirements file entry by entry. The new assertions were mutation-checked. Verification: Python 3.10 366 passed, 1 skipped; Python 3.14 367 passed.
 
 ### Transparency Report
 
