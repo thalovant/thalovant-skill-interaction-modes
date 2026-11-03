@@ -1,0 +1,12 @@
+# The locking pair the hub runtime installs (thalovant/ovos-runtime-image,
+# security-requirements.txt). The published combo-lock 0.3.1 requires
+# filelock~=3.0, and every filelock release up to 4.2.0 is inside published
+# advisory ranges. The runtime therefore installs a reviewed combo-lock build
+# from an immutable archive pinned by SHA-256, together with filelock 4.x.
+# pip installs from this repository add this file so they resolve the same
+# pair; uv installs get it from [tool.uv] in pyproject.toml. Keep both in step
+# with the runtime image. filelock 4.1.1+ needs Python 3.11, so the first two
+# lines apply from 3.11; on 3.10 the skill's own requirement keeps 3.20.3.
+combo-lock @ https://github.com/goldyfruit/combo-lock/archive/3aa5c729171ab161e54623c59ca8b41e3451c5f5.tar.gz#sha256=e653deca0dead17177ad141026881899889e8b5c0be5884ebef098d266dc70a7 ; python_version >= "3.11"
+filelock>=4.2.1,<5 ; python_version >= "3.11"
+certifi>=2026.10.19

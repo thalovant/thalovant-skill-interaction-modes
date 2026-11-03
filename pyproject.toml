@@ -1,3 +1,15 @@
 [build-system]
 requires = ["setuptools>=84.2.1", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.uv]
+# The published combo-lock 0.3.1 requires filelock~=3.0, and every 3.x release
+# is inside published advisory ranges. On Python 3.11+, uv installs from this
+# checkout (CI and the release workflow) use the reviewed combo-lock build the
+# hub runtime installs, pinned by SHA-256, so filelock>=4.2.1 can resolve. Keep
+# it in step with .github/ci/runtime-security-requirements.txt. An override
+# replaces every requirement on the package, so 3.10 needs its own line.
+override-dependencies = [
+    "combo-lock @ https://github.com/goldyfruit/combo-lock/archive/3aa5c729171ab161e54623c59ca8b41e3451c5f5.tar.gz#sha256=e653deca0dead17177ad141026881899889e8b5c0be5884ebef098d266dc70a7 ; python_version >= '3.11'",
+    "combo-lock>=0.2 ; python_version < '3.11'",
+]

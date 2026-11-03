@@ -1,4 +1,4 @@
-Last Edit: Codex (exact runtime model identifier unavailable) - 2026-10-25 - Motive: Record the scoped filelock compatibility pin and verification.
+Last Edit: Claude Code - 2026-11-03 - Motive: Split the filelock requirement by Python version so 3.11+ installs only fixed releases and hub installs resolve.
 
 # Common questions
 
@@ -23,6 +23,6 @@ availability depend on your speech providers.
 [Thalovant contributors](README.md#credits), using OpenVoiceOS and SkillKit.
 The skill is Python software, licensed under [Apache-2.0](LICENSE).
 
-## Why is filelock pinned to 3.20.3?
+## Why is filelock pinned differently on Python 3.10?
 
-The pin keeps the skill's Python 3.10-compatible dependency route outside the eight reviewed advisory ranges without adding a newer-runtime-only dependency. Both requirements installs and built wheel metadata enforce it. It must be reassessed when advisories or runtime support change; it is not a permanent security guarantee. See [AUDIT.md](AUDIT.md) and `test_installed_metadata_pins_reviewed_filelock` in [the regression tests](test/test_dependency_security.py).
+filelock up to 4.2.0 is inside published advisory ranges, and 4.2.1, the first fixed release, needs Python 3.11. So the skill requires `filelock>=4.2.1,<5` on 3.11+ and keeps 3.20.3, the least-affected release, on 3.10. The published combo-lock caps filelock below 4, so installs on 3.11+ use the reviewed combo-lock build the hub runtime ships: uv gets it from `[tool.uv]` in [pyproject.toml](pyproject.toml), and pip from [.github/ci/runtime-security-requirements.txt](.github/ci/runtime-security-requirements.txt). A plain PyPI install on 3.11+ without it fails to resolve. See [AUDIT.md](AUDIT.md) and [the regression tests](test/test_dependency_security.py).
