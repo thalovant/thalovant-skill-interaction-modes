@@ -1,4 +1,4 @@
-Last Edit: Claude Code - 2026-11-03 - Motive: Split the filelock requirement by Python version so 3.11+ installs only fixed releases and hub installs resolve.
+Last Edit: Claude Code - 2026-11-03 - Motive: Correct how the uv route pins combo-lock, check the hash in CI installs, and tighten the dependency guard tests.
 
 # Maintenance report
 
@@ -37,4 +37,14 @@ Verification (local): Python 3.10 suite 366 passed, 1 skipped; Python 3.14 suite
 - AI Model: Claude Opus 5.5 (Claude Code).
 - Actions Taken: checked the advisory ranges and filelock's Python support, reproduced the hub-install conflict, changed the requirement, the uv configuration, the CI requirements file and the installed-wheel script, rewrote the dependency guard tests, ran the suites on 3.10, 3.12 and 3.14, and updated the docs.
 - Oversight: the change is reviewed through a pull request with hosted CI. No release, catalog change or deployment is part of it.
+
+## 2026-11-03: filelock split follow-up
+
+Added `-r .github/ci/runtime-security-requirements.txt` to the uv installs in the test and release workflows, so they check the combo-lock archive hash, which uv does not check on an override. Corrected the [pyproject.toml](pyproject.toml) comment and [AUDIT.md](AUDIT.md) to match, capped the 3.10 override at `combo-lock>=0.3,<0.4`, and made the dependency guard tests compare the override list and the CI requirements file entry by entry. The new assertions were mutation-checked. Verification: Python 3.10 366 passed, 1 skipped; Python 3.14 367 passed.
+
+### Transparency Report
+
+- AI Model: Claude Opus 5.5 (Claude Code); the findings came from an independent Claude review agent.
+- Actions Taken: verified that uv ignores the fragment on overrides and checks it on `-r` requirements, changed two workflow install lines, the override range and the guard test, ran the suites on 3.10 and 3.14, and updated the docs.
+- Oversight: pull request with hosted CI; no release or deployment.
 

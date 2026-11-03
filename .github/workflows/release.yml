@@ -50,7 +50,7 @@ jobs:
         run: |
           python -m pip install --upgrade uv
           uv venv .venv
-          uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" build twine pytest-timeout
+          uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" build twine pytest-timeout -r .github/ci/runtime-security-requirements.txt
       - name: Check resources and intent compatibility
         run: .venv/bin/thalovant-skillkit check
       - name: Build and verify both distributions
