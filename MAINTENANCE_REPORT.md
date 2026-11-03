@@ -1,4 +1,4 @@
-Last Edit: Codex (exact runtime model identifier unavailable) - 2026-10-25 - Motive: Record the scoped filelock compatibility pin and verification.
+Last Edit: Claude Code - 2026-11-03 - Motive: Split the filelock requirement by Python version so 3.11+ installs only fixed releases and hub installs resolve.
 
 # Maintenance report
 
@@ -25,3 +25,16 @@ Local Python 3.12.12 verification: tests: 365 passed in 6.77s. All three [depend
 ### Transparency Report
 
 Codex (exact runtime model identifier unavailable) inspected the install paths and primary advisories, added the pin/tests and ran local checks. The user authorized dependency remediation. Human review and hosted checks precede any merge; no skill release or deployment was performed.
+
+## 2026-11-03: filelock split by Python version
+
+Replaced the single `filelock==3.20.3` requirement with two lines split by marker: 3.20.3 on Python 3.10 and `>=4.2.1,<5` on 3.11+. Added the reviewed combo-lock build to both install routes: `[tool.uv] override-dependencies` in [pyproject.toml](pyproject.toml), and [.github/ci/runtime-security-requirements.txt](.github/ci/runtime-security-requirements.txt) for the pip install in [.github/scripts/check_installed.py](.github/scripts/check_installed.py). Rewrote [test_dependency_security.py](test/test_dependency_security.py) to guard the split. Reason and residual risk: [AUDIT.md](AUDIT.md). Skill behavior, version, catalog and release workflow are unchanged.
+
+Verification (local): Python 3.10 suite 366 passed, 1 skipped; Python 3.14 suite 367 passed; installed-wheel check on 3.12 passed; a hub-style install of the wheel under the runtime's filelock constraint succeeded.
+
+### Transparency Report
+
+- AI Model: Claude Opus 5.5 (Claude Code).
+- Actions Taken: checked the advisory ranges and filelock's Python support, reproduced the hub-install conflict, changed the requirement, the uv configuration, the CI requirements file and the installed-wheel script, rewrote the dependency guard tests, ran the suites on 3.10, 3.12 and 3.14, and updated the docs.
+- Oversight: the change is reviewed through a pull request with hosted CI. No release, catalog change or deployment is part of it.
+

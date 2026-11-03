@@ -15,6 +15,8 @@ with tempfile.TemporaryDirectory(prefix="interaction-modes-wheel-") as directory
     subprocess.run([
         str(python), "-m", "pip", "install", "--pre",
         f"{wheel}[test]", "pytest-timeout",
+        # The reviewed combo-lock build, so filelock>=4.2.1 resolves on 3.11+.
+        "-r", str(root / ".github/ci/runtime-security-requirements.txt"),
     ], check=True, cwd=work)
     subprocess.run([
         str(python), "-c",
