@@ -43,7 +43,7 @@ jobs:
         if: steps.scope.outputs.run_tests == 'true'
       - run: uv venv --python "$(command -v python)" .venv
         if: steps.scope.outputs.run_tests == 'true'
-      - run: uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" pytest-timeout
+      - run: uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" pytest-timeout -r .github/ci/runtime-security-requirements.txt
       # The test extra includes OVOScope: native routing must run, not skip.
         if: steps.scope.outputs.run_tests == 'true'
       - run: .venv/bin/python -c "import ovoscope, thalovant_skillkit.testing_ovos"

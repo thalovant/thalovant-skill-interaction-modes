@@ -64,21 +64,22 @@ def test_requirements_install_uses_same_pin() -> None:
 
 
 def test_uv_and_pip_installs_use_the_reviewed_combo_lock() -> None:
-    """Both install routes name the same SHA-256 pinned combo-lock build for 3.11+."""
+    """Both install routes name the same combo-lock archive and hash for 3.11+."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
-    overrides = [Requirement(item) for item in project["tool"]["uv"]["override-dependencies"]]
-    ci = (ROOT / ".github/ci/runtime-security-requirements.txt").read_text().splitlines()
-    pinned = [Requirement(line) for line in ci if line.strip() and not line.startswith("#")]
-    for entries in (overrides, pinned):
-        combo = [item for item in entries if item.name == "combo-lock" and item.url]
-        assert len(combo) == 1
-        assert combo[0].url == COMBO_URL
-        assert str(combo[0].marker) == 'python_version >= "3.11"'
-    assert any(item.name == "filelock" and item.specifier == PATCHED for item in pinned)
+    overrides = sorted(str(Requirement(item)) for item in project["tool"]["uv"]["override-dependencies"])
     # An override replaces every requirement on the package, so 3.10 keeps the
-    # published combo-lock through its own entry instead of losing it.
-    legacy = [item for item in overrides if item.name == "combo-lock" and not item.url]
-    assert len(legacy) == 1 and str(legacy[0].marker) == 'python_version < "3.11"'
+    # published combo-lock, with its dependants' caps, through its own entry.
+    assert overrides == sorted([
+        str(Requirement(f'combo-lock @ {COMBO_URL} ; python_version >= "3.11"')),
+        str(Requirement('combo-lock>=0.3,<0.4 ; python_version < "3.11"')),
+    ])
+    ci = (ROOT / ".github/ci/runtime-security-requirements.txt").read_text().splitlines()
+    pinned = sorted(str(Requirement(line)) for line in ci if line.strip() and not line.startswith("#"))
+    assert pinned == sorted([
+        str(Requirement(f'combo-lock @ {COMBO_URL} ; python_version >= "3.11"')),
+        str(Requirement('filelock>=4.2.1,<5 ; python_version >= "3.11"')),
+        str(Requirement("certifi>=2026.10.19")),
+    ])
 
 
 @pytest.mark.skipif(not ON_PATCHED_PYTHON, reason="the reviewed build is only used on 3.11+")

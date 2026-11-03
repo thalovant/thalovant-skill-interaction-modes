@@ -50,7 +50,13 @@ jobs:
         run: |
           python -m pip install --upgrade uv
           uv venv .venv
-          uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" build twine pytest-timeout
+          # Tags from before the reviewed combo-lock pair do not carry the file;
+          # they keep the install route they were released with.
+          security=()
+          if [ -f .github/ci/runtime-security-requirements.txt ]; then
+            security=(-r .github/ci/runtime-security-requirements.txt)
+          fi
+          uv pip install --python .venv/bin/python --prerelease=allow -e ".[test]" build twine pytest-timeout "${security[@]}"
       - name: Check resources and intent compatibility
         run: .venv/bin/thalovant-skillkit check
       - name: Build and verify both distributions
