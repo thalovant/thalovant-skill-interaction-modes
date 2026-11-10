@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12 (2026-11-10)
+
+- `SPEECH_STYLE` (skillkit 0.34) is declared, so a reply a translator writes as two sentences, or with a colon or a dash, is paced from its own words. Every reply the skill ships today is one short sentence, so nothing sounds different yet. The import is guarded: a hub keeps the skillkit it loaded until its runtime restarts, and on a kit older than 0.34 the skill loads and speaks plainly. The kit floor is unchanged.
+
 ## 0.1.11 (2026-10-12)
 
 - Mode commands route by intent in the 11 languages the hubs serve. German
