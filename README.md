@@ -1,37 +1,49 @@
-<!-- Last Edit: Codex - 2026-11-07 - Motive: Add the canonical Thalovant logo with light and dark theme support. -->
+Last Edit: Claude Code (Claude Sonnet 5.5) - 2026-11-10 - Motive: Standard README (say it, install, settings, languages, develop).
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thalovant/.github/main/profile/assets/thalovant-logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thalovant/.github/main/profile/assets/thalovant-logo-light.png">
-    <img src="https://raw.githubusercontent.com/thalovant/.github/main/profile/assets/thalovant-logo-light.png" alt="Thalovant" width="320">
+    <img src="https://raw.githubusercontent.com/thalovant/.github/main/profile/assets/thalovant-logo-light.png" alt="Thalovant" width="240">
   </picture>
 </p>
 
 # Interaction Modes
 
-Set the mood with a temporary party mode for your own speaker.
+[![Test](https://github.com/thalovant/thalovant-skill-interaction-modes/actions/workflows/test.yml/badge.svg)](https://github.com/thalovant/thalovant-skill-interaction-modes/actions/workflows/test.yml)
 
-## Try saying
+Switch your hub into party mode and back, per room or screen.
 
-- “Turn on party mode.”
-- “Back to normal.”
-- “What mode are we in?”
+## Say it
 
-## Get started
+- “Switch to party mode” → Party mode is on for this client.
+- “Enable party mode” → Party mode is on for this client.
+- “What mode are we in” → Party mode is on.
+- “Which mode is active” → Tells you the mode, for example "Normal mode is on."
+- French: “Passe en mode fête” → Le mode fête est activé.
 
-Add this repository to your hub using [Add Your Own Skill](https://docs.thalovant.com/manage/add-your-own-skill/), then try a request above.
+Modes apply to the room or screen you are talking to, not the whole house.
 
-Participating skills, such as Joke Garden, adapt their replies to your mode. Each speaker keeps its own mode. Party mode ends after 30 minutes by default, when you say “Back to normal,” or when the assistant restarts.
+## Install
 
-Includes [65 language and regional resource sets](thalovant_skill_interaction_modes/locale/supported.json). Set your hub to a supported locale; speech recognition, voices, and provider language support depend on your setup.
+Open the Thalovant marketplace on your hub and add **Interaction Modes**. Or install it yourself:
 
-## Learn more
+```sh
+pip install thalovant-skill-interaction-modes
+```
 
-[Setup, settings, and development](REFERENCE.md) · [Thalovant documentation](https://docs.thalovant.com/)
+## Languages
 
-## Credits
+65 languages and regional variants, including English, French, Spanish, German ([full list](thalovant_skill_interaction_modes/locale/supported.json)).
 
-Created and maintained by [Thalovant contributors](https://github.com/thalovant/thalovant-skill-interaction-modes/graphs/contributors), using [OpenVoiceOS](https://github.com/OpenVoiceOS) and [Thalovant SkillKit](https://github.com/thalovant/thalovant-skillkit).
+## Develop
 
-Apache-2.0 — see [LICENSE](LICENSE).
+```sh
+pip install -e ".[test]"
+uv run pytest
+```
+
+Pull requests are tested on every change ([workflow](https://github.com/thalovant/thalovant-skill-interaction-modes/actions/workflows/test.yml)).
+
+## Licence
+
+Apache-2.0.
