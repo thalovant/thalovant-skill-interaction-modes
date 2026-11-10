@@ -10,6 +10,14 @@ from thalovant_skillkit import SkillResources, context_of, fold_words, standardi
 from thalovant_skillkit.skill import ThalovantFallbackSkill
 from thalovant_skillkit.sessions import SessionStateStore
 
+try:
+    from thalovant_skillkit.ssml import SpeechStyle
+except ImportError:
+    # A runtime whose loaded skillkit is older than 0.34 (a hub upgrades the kit on disk but its
+    # running process keeps the old one until it restarts): the skill must still load and answer,
+    # in plain words. Weather 0.6.3 imported this unguarded and was unloadable for ten hours.
+    SpeechStyle = None
+
 LOCALE_DIR = Path(__file__).parent / "locale"
 RESOURCES = SkillResources(LOCALE_DIR)
 DEFAULT_MODE_TTL_SECONDS = 30 * 60
@@ -133,6 +141,12 @@ def reset_interaction_modes() -> None:
 
 class InteractionModesSkill(ThalovantFallbackSkill):
     """Voice control for temporary client-scoped interaction modes."""
+
+    #: How the replies are paced (skillkit 0.34): a beat after each sentence and before the value
+    #: after a colon or a dash, derived from each dialog's own words in every language. None on a
+    #: kit that cannot, which speaks plainly.
+    SPEECH_STYLE = (SpeechStyle(sentence_break="300ms", colon_break="250ms", dash_break="250ms")
+                    if SpeechStyle is not None else None)
 
     #: The module constant, so the rung is written once. The base registers the
     #: fallback at it, and an operator may move it with a `fallback_priority`

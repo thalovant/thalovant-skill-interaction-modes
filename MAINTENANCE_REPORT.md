@@ -1,4 +1,4 @@
-Last Edit: Claude Code - 2026-11-03 - Motive: Correct how the uv route pins combo-lock, check the hash in CI installs, and tighten the dependency guard tests.
+Last Edit: Claude Code - 2026-11-10 - Motive: Release 0.1.12: SPEECH_STYLE and SSML helpers.
 
 # Maintenance report
 
@@ -48,3 +48,14 @@ Added `-r .github/ci/runtime-security-requirements.txt` to the uv installs in th
 - Actions Taken: verified that uv ignores the fragment on overrides and checks it on `-r` requirements, changed two workflow install lines, the override range and the guard test, ran the suites on 3.10 and 3.14, and updated the docs.
 - Oversight: pull request with hosted CI; no release or deployment.
 
+## 2026-11-10: 0.1.12, speech pacing and markup
+
+- `SPEECH_STYLE` (skillkit 0.34) is declared, so a reply a translator writes as two sentences, or with a colon or a dash, is paced from its own words. Every reply the skill ships today is one short sentence, so nothing sounds different yet. The import is guarded: a hub keeps the skillkit it loaded until its runtime restarts, and on a kit older than 0.34 the skill loads and speaks plainly. The kit floor is unchanged.
+
+Verification: full suite on skillkit 0.35.0: 370 passed; on skillkit 0.29.2: 368 passed, 2 skipped.
+
+### Transparency Report
+
+- AI Model: Claude Sonnet 5.5 (Claude Code).
+- Actions Taken: declared the skill's `SPEECH_STYLE` behind a guarded import, adapted the reply code and tests, and ran the suite on the current skillkit and on skillkit 0.29.2.
+- Oversight: automated test runs and CI; the maintainer reviews the pull request before release.
