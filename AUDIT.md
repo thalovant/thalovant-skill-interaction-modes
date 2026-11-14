@@ -1,5 +1,3 @@
-Last Edit: Claude Code - 2026-11-03 - Motive: Correct how the uv route pins combo-lock, check the hash in CI installs, and tighten the dependency guard tests.
-
 # Audit
 
 ## 2026-09-30: license and language metadata

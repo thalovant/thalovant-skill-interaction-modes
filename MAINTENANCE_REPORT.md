@@ -1,5 +1,3 @@
-Last Edit: Claude Code - 2026-11-10 - Motive: Release 0.1.12: SPEECH_STYLE and SSML helpers.
-
 # Maintenance report
 
 ## 2026-09-30: license and language metadata
