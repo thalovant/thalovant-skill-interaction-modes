@@ -1,5 +1,3 @@
-Last Edit: Codex (exact runtime model identifier unavailable) - 2026-10-25 - Motive: Record the scoped filelock compatibility pin and verification.
-
 # Interaction Modes
 
 Say “Turn on party mode” to let participating skills add a playful touch to your

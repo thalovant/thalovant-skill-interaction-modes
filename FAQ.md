@@ -1,5 +1,3 @@
-Last Edit: Claude Code - 2026-11-03 - Motive: Split the filelock requirement by Python version so 3.11+ installs only fixed releases and hub installs resolve.
-
 # Common questions
 
 ## Will this play music or change every speaker?
